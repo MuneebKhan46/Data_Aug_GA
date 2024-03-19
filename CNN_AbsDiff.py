@@ -167,32 +167,28 @@ def augmented_images(data, num_augmented_images_per_original):
     return augmented_images
 
 
-def create_dnn_model(input_shape=(224,224, 1)):
-    model = Sequential([
-        Flatten(input_shape=input_shape),
-        Dense(512, activation='elu'),
-        Dense(512, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dropout(0.5), 
-        
-        Dense(256, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dense(256, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dense(256, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dropout(0.5), 
-        
-        Dense(128, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dense(128, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dense(128, activation='elu',  kernel_regularizer=l1(0.001)),             
-        Dropout(0.5), 
-        
-        Dense(64, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dense(64, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dropout(0.5), 
-        Dense(32, activation='elu',  kernel_regularizer=l1(0.001)),
-        Dense(32, activation='elu',  kernel_regularizer=l1(0.001)),
-        
-        Dense(2, activation='softmax')
-    ])
-     
+def create_cnn_model(input_shape=(224,224, 1)):
+    model = Sequential()
+    model.add(Conv2D(32, kernel_size=(3,3), activation='elu', input_shape=input_shape))
+    model.add(Conv2D(32, kernel_size=(3,3), activation='elu'))
+
+    model.add(MaxPooling2D(pool_size=(3,3)))
+    model.add(BatchNormalization())     
+    # model.add(Dropout(0.2))
+
+    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+
+    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+
+    model.add(BatchNormalization())
+    # model.add(Dropout(0.35))
+
+    model.add(Flatten())
+    model.add(Dense(128, activation='elu'))
+
+    model.add(Dense(2, activation='softmax'))
     return model
 
 
@@ -273,11 +269,11 @@ print(y_test.shape)
 # Without Class Weight
 
 opt = Adam(learning_rate=0.0001)
-dnn_wcw_model = create_dnn_model()
+dnn_wcw_model = create_cnn_model()
 dnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/DNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 wcw_history = dnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
 
 
@@ -296,11 +292,11 @@ print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
 print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
 opt = Adam(learning_rate=0.0001)
-dnn_cw_model = create_dnn_model()
+dnn_cw_model = create_cnn_model()
 dnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/DNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cw_history = dnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
 
 
@@ -352,11 +348,11 @@ cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 
 
 opt = Adam(learning_rate=0.0001)
-dnn_cb_model = create_dnn_model()
+dnn_cb_model = create_cnn_model()
 dnn_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/DNN_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cb_history = dnn_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 
 
@@ -380,7 +376,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_wCW_csv_path = '/Dataset/CSV/DNN_AbsDiff_wCW_misclassified_patches.csv'
+misclass_wCW_csv_path = '/Dataset/CSV/CNN_AbsDiff_wCW_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -438,7 +434,7 @@ weighted_precision = weighted_precision*100
 weighted_recall    = weighted_recall*100
 
 
-model_name = "DNN"
+model_name = "CNN"
 feature_name = "Absolute Difference Map"
 technique = "Without Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
@@ -460,7 +456,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CW_csv_path  = '/Dataset/CSV/DNN_AbsDiff_CW_misclassified_patches.csv'    
+misclass_CW_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CW_misclassified_patches.csv'    
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -518,7 +514,7 @@ weighted_precision = weighted_precision*100
 weighted_recall    = weighted_recall*100
 
 
-model_name = "DNN"
+model_name = "CNN"
 feature_name = "Absolute Difference Map"
 technique = "Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
@@ -540,7 +536,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CB_csv_path  = '/Dataset/CSV/DNN_AbsDiff_CB_misclassified_patches.csv'    
+misclass_CB_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CB_misclassified_patches.csv'    
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -600,7 +596,7 @@ weighted_precision = weighted_precision*100
 weighted_recall    = weighted_recall*100
 
 
-model_name = "DNN"
+model_name = "CNN"
 feature_name = "Absolute Difference Map"
 technique = "Class Balance"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
@@ -646,7 +642,7 @@ accuracy_0 = (TN / total_class_0) * 100
 accuracy_1 = (TP / total_class_1) * 100
 
 
-model_name = "DNN"
+model_name = "CNN"
 feature_name = "Absolute Difference Map"
 technique = "Ensemble"
 
@@ -655,7 +651,7 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 
-misclass_En_csv_path = '/Dataset/CSV/Ensemble_DNN_AbsDiff_misclassified_patches.csv'
+misclass_En_csv_path = '/Dataset/CSV/Ensemble_CNN_AbsDiff_misclassified_patches.csv'
 
 misclassified_data = []
 for index in misclassified_indexes:
