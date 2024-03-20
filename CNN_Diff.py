@@ -208,7 +208,7 @@ ghosting_artifacts = [item for item in combined if item[1] == 1]
 non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 
 num_ghosting_artifacts = 3502
-num_non_ghosting_artifacts = 27944
+num_non_ghosting_artifacts = 28446
 num_test_ghosting = 1500
 num_test_non_ghosting = 1500
 
