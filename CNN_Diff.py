@@ -197,6 +197,8 @@ original_patches, denoised_patches, labels, denoised_image_names, all_patch_numb
 diff_patches = calculate_difference(original_patches, denoised_patches)
 diff_patches_np, labels_np = prepare_data(diff_patches, labels)
 
+print(len(diff_patches))
+
 
 combined = list(zip(diff_patches_np, labels_np, denoised_image_names, all_patch_numbers))
 combined = sklearn_shuffle(combined)
@@ -235,6 +237,11 @@ train_labels = np.array(train_labels)
 
 test_patches = np.array(test_patches)
 test_labels = np.array(test_labels)
+
+
+print(len(train_patches))
+print(len(test_patches))
+
 
 ghosting_patches = train_patches[train_labels == 1]
 
