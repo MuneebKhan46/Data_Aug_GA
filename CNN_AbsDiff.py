@@ -253,7 +253,7 @@ train_patches = np.concatenate((train_patches_expanded, augmented_images_np_expa
 train_labels = np.concatenate((train_labels, augmented_labels), axis=0)
 
 
-X_train, X_test, y_train, y_test = train_test_split(train_patches, train_labels, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(train_patches, train_labels, test_size=0.15, random_state=42)
 
 y_train = keras.utils.to_categorical(y_train, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
@@ -266,15 +266,16 @@ print(y_train.shape)
 print(X_test.shape)
 print(y_test.shape)
 
+
 # Without Class Weight
 
 opt = Adam(learning_rate=0.0001)
-dnn_wcw_model = create_cnn_model()
-dnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+cnn_wcw_model = create_cnn_model()
+cnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
 wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-wcw_history = dnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
+wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
 
 
 # With Class Weight
@@ -292,12 +293,12 @@ print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
 print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
 opt = Adam(learning_rate=0.0001)
-dnn_cw_model = create_cnn_model()
-dnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+cnn_cw_model = create_cnn_model()
+cnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
 cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cw_history = dnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
+cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
 
 
 # With Class Balance
@@ -348,12 +349,12 @@ cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 
 
 opt = Adam(learning_rate=0.0001)
-dnn_cb_model = create_cnn_model()
-dnn_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+cnn_cb_model = create_cnn_model()
+cnn_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
 cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cb_history = dnn_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
+cb_history = cnn_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 
 
 # Testing
@@ -367,10 +368,10 @@ test_labels = keras.utils.to_categorical(test_labels, 2)
 
 ## Without Class Weight
 
-test_loss, test_acc = dnn_wcw_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = cnn_wcw_model.evaluate(test_patches, test_labels)
 test_acc  = test_acc *100
 
-predictions = dnn_wcw_model.predict(test_patches)
+predictions = cnn_wcw_model.predict(test_patches)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(test_labels, axis=-1)
 
@@ -441,16 +442,16 @@ save_metric_details(model_name, technique, feature_name, test_acc, weighted_prec
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 class_1_precision = report['Ghosting Artifact']['precision']
-models.append(dnn_wcw_model)
+models.append(cnn_wcw_model)
 class_1_accuracies.append(class_1_precision)
 
 
 ## With Class Weight
 
-test_loss, test_acc = dnn_cw_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = cnn_cw_model.evaluate(test_patches, test_labels)
 test_acc  = test_acc *100
 
-predictions = dnn_cw_model.predict(test_patches)
+predictions = cnn_cw_model.predict(test_patches)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(test_labels, axis=-1)
 
@@ -522,15 +523,17 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
-models.append(dnn_cw_model)
+models.append(cnn_cw_model)
 class_1_accuracies.append(class_1_precision)
+
+
 
 ## With Class Balance
 
-test_loss, test_acc = dnn_cb_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = cnn_cb_model.evaluate(test_patches, test_labels)
 test_acc  = test_acc *100
 
-predictions = dnn_cb_model.predict(test_patches)
+predictions = cnn_cb_model.predict(test_patches)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(test_labels, axis=-1)
 
@@ -604,7 +607,7 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
-models.append(dnn_cb_model)
+models.append(cnn_cw_model)
 class_1_accuracies.append(class_1_precision)
 
 
