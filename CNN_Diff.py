@@ -96,7 +96,7 @@ def load_data_from_csv(csv_path, original_dir, denoised_dir):
 
 
 def calculate_difference(original, ghosting):
-    return [np.abs(ghost.astype(np.int16) - orig.astype(np.int16)).astype(np.uint8) for orig, ghost in zip(original, ghosting)]
+    return [ghost.astype(np.int16) - orig.astype(np.int16) for orig, ghost in zip(original, ghosting)]
 
 
 def prepare_data(data, labels):
@@ -274,7 +274,7 @@ cnn_wcw_model = create_cnn_model()
 cnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/CNN_Diff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
 
 
@@ -297,7 +297,7 @@ cnn_cw_model = create_cnn_model()
 cnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_Diff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
 
 
@@ -353,7 +353,7 @@ cnn_cb_model = create_cnn_model()
 cnn_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_Diff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cb_history = cnn_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 
 
@@ -377,7 +377,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_wCW_csv_path = '/Dataset/CSV/CNN_AbsDiff_wCW_misclassified_patches.csv'
+misclass_wCW_csv_path = '/Dataset/CSV/CNN_Diff_wCW_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -436,7 +436,7 @@ weighted_recall    = weighted_recall*100
 
 
 model_name = "CNN"
-feature_name = "Absolute Difference Map"
+feature_name = "Difference Map"
 technique = "Without Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
@@ -457,7 +457,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CW_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CW_misclassified_patches.csv'    
+misclass_CW_csv_path  = '/Dataset/CSV/CNN_Diff_CW_misclassified_patches.csv'    
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -516,7 +516,7 @@ weighted_recall    = weighted_recall*100
 
 
 model_name = "CNN"
-feature_name = "Absolute Difference Map"
+feature_name = "Difference Map"
 technique = "Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
@@ -539,7 +539,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CB_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CB_misclassified_patches.csv'    
+misclass_CB_csv_path  = '/Dataset/CSV/CNN_Diff_CB_misclassified_patches.csv'    
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -600,7 +600,7 @@ weighted_recall    = weighted_recall*100
 
 
 model_name = "CNN"
-feature_name = "Absolute Difference Map"
+feature_name = "Difference Map"
 technique = "Class Balance"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
@@ -646,7 +646,7 @@ accuracy_1 = (TP / total_class_1) * 100
 
 
 model_name = "CNN"
-feature_name = "Absolute Difference Map"
+feature_name = "Difference Map"
 technique = "Ensemble"
 
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
@@ -654,7 +654,7 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 
-misclass_En_csv_path = '/Dataset/CSV/Ensemble_CNN_AbsDiff_misclassified_patches.csv'
+misclass_En_csv_path = '/Dataset/CSV/Ensemble_CNN_Diff_misclassified_patches.csv'
 
 misclassified_data = []
 for index in misclassified_indexes:
