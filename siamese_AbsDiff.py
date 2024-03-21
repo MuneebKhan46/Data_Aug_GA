@@ -400,7 +400,7 @@ test_labels = keras.utils.to_categorical(test_labels, 2)
 ## Without Class Weight
 
 # test_loss, test_acc = siam_wcw_model.evaluate(test_patches, test_labels)
-test_loss, test_acc = siam_wcw_model.evaluate([test_patches[0][:3000], test_patches[1][:10]], test_labels[:3000])
+test_loss, test_acc = siam_wcw_model.evaluate([test_patches[0][:3000], test_patches[1][:3000]], test_labels[:3000])
 
 test_acc  = test_acc *100
 
@@ -482,7 +482,7 @@ class_1_accuracies.append(class_1_precision)
 
 ## With Class Weight
 
-test_loss, test_acc = siam_cw_model.evaluate([test_patches[0][:3000], test_patches[1][:10]], test_labels[:3000])
+test_loss, test_acc = siam_cw_model.evaluate([test_patches[0][:3000], test_patches[1][:3000]], test_labels[:3000])
 test_acc  = test_acc *100
 
 predictions = siam_cw_model.predict(test_patches)
@@ -562,7 +562,7 @@ class_1_accuracies.append(class_1_precision)
 
 ## With Class Balance
 
-test_loss, test_acc = siam_cb_model.evaluate([test_patches[0][:3000], test_patches[1][:10]], test_labels[:3000])
+test_loss, test_acc = siam_cb_model.evaluate([test_patches[0][:3000], test_patches[1][:3000]], test_labels[:3000])
 test_acc  = test_acc *100
 
 predictions = siam_cb_model.predict(test_patches)
