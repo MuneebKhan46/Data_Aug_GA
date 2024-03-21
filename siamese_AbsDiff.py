@@ -375,8 +375,11 @@ wcw_history = siam_wcw_model.fit(X_train, y_train, epochs=5, validation_data=(X_
 ## Testing
 
 test_patches = np.array(test_patches)
-test_patches = test_patches.reshape((-1, 224, 224, 1))
-test_patches = [test_patches[:, 0],  test_patches[:, 1]]
+# test_patches = test_patches.reshape((-1, 224, 224, 1))
+# test_patches = [test_patches[:, 0],  test_patches[:, 1]]
+
+test_patches = test_patches.reshape((3000, 2, 224, 224, 1))
+test_patches = [test_patches[:, 0], test_patches[:, 1]] 
 
 test_labels = np.array(test_labels)
 test_labels = keras.utils.to_categorical(test_labels, 2)
