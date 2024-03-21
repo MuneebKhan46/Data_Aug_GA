@@ -275,7 +275,7 @@ print(f"Shape of Train_labels: {train_labels.shape}")
 
 train_labels_combined = np.concatenate((train_labels, augmented_labels), axis=0)
 
-X_train, X_test, y_train, y_test = train_test_split(train_patches, train_labels_combined, test_size=0.15, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(train_patches_combined, train_labels_combined, test_size=0.15, random_state=42)
 X_train = [X_train[:, 0], X_train[:, 1]]
 X_test = [X_test[:, 0], X_test[:, 1]]
 
