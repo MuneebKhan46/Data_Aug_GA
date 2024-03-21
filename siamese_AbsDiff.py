@@ -84,7 +84,8 @@ def load_data_from_csv(csv_path, original_dir, denoised_dir):
         all_original_patches.extend(original_patches)
         all_denoised_patches.extend(denoised_patches)
         denoised_image_names.extend([row['original_image_name']] * len(denoised_patches))
-        all_patch_numbers.extend(denoised_patch_numbers)
+        all_patch_numbers.extend(denoised_patch_numbers) 
+
 
         scores = np.array([0 if float(score) == 0 else 1 for score in row['patch_score'].split(',')])
         if len(scores) != len(original_patches) or len(scores) != len(denoised_patches):
@@ -93,6 +94,10 @@ def load_data_from_csv(csv_path, original_dir, denoised_dir):
         all_scores.extend(scores)
 
     return all_original_patches, all_denoised_patches, all_scores, denoised_image_names, all_patch_numbers
+
+
+def calculate_difference(original, ghosting):
+    return [np.abs(ghost.astype(np.int16) - orig.astype(np.int16)).astype(np.uint8) for orig, ghost in zip(original, ghosting)]
 
 
 def prepare_data(data, labels):
@@ -137,9 +142,10 @@ def save_metric_details(model_name, technique, feature_name, test_acc, weighted_
     
     df_metrics.to_csv(result_file_path, index=False)
 
-def augmented_images(data, num_augmented_images_per_original):
-    augmented_images = []
+
+def augmented_images_paired(data, num_augmented_images_per_original):
     
+    augmented_pairs = []
     data_augmentation = ImageDataGenerator(
         rotation_range=40,
         width_shift_range=0.2,
@@ -151,15 +157,26 @@ def augmented_images(data, num_augmented_images_per_original):
         fill_mode='nearest'
     )
 
-    for i, patch in enumerate(data):
-        patch = np.expand_dims(patch, axis=0)
-        temp_generator = data_augmentation.flow(patch, batch_size=1)
+    for original, denoised in data:  # 
+        original_expanded = np.expand_dims(original, axis=0)
+        denoised_expanded = np.expand_dims(denoised, axis=0)
+        
+        
+        seed = np.random.randint(0, 10000)  # Ensure a consistent seed for both
+
+        temp_generator_original = data_augmentation.flow(original_expanded, batch_size=1, seed=seed)
+        temp_generator_denoised = data_augmentation.flow(denoised_expanded, batch_size=1, seed=seed)
         
         for _ in range(num_augmented_images_per_original):
-            augmented_image = next(temp_generator)[0]  
-            augmented_image = np.squeeze(augmented_image)
-            augmented_images.append(augmented_image)
-    return augmented_images
+            aug_original = next(temp_generator_original)[0]
+            aug_denoised = next(temp_generator_denoised)[0]
+
+            augmented_pairs.append((aug_original, aug_denoised))
+
+    return augmented_pairs
+    
+
+
 
 def create_siamese_model(input_shape=(224, 224, 1)):
     def base_model(input_shape):
@@ -185,13 +202,12 @@ def create_siamese_model(input_shape=(224, 224, 1)):
     return Model(inputs=[input_a, input_b], outputs=predictions)
 
 
-
 original_patches, denoised_patches, labels, denoised_image_names, all_patch_numbers = load_data_from_csv(csv_path, original_dir, denoised_dir)
 
 
 paired_patches = []
 for original_patch, denoised_patch in zip(original_patches, denoised_patches):
-  paired_patches.append([original_patch, denoised_patch])
+    paired_patches.append([original_patch, denoised_patch])
 
 print(len(paired_patches))
 
@@ -199,6 +215,8 @@ print(len(paired_patches))
 diff_patches_np, labels_np = prepare_data(paired_patches, labels)
 print(diff_patches_np.shape)
 print(labels_np.shape)
+
+
 
 
 combined = list(zip(diff_patches_np, labels_np, denoised_image_names, all_patch_numbers))
@@ -241,19 +259,13 @@ test_labels = np.array(test_labels)
 ghosting_patches = train_patches[train_labels == 1]
 
 ghosting_patches_expanded = np.expand_dims(ghosting_patches, axis=-1)
-augmented_images = augmented_images(ghosting_patches_expanded, num_augmented_images_per_original=10)
-
-
-
-augmented_images_np = np.stack(augmented_images)
+augmented_images_result = augmented_images_paired(ghosting_patches_expanded, num_augmented_images_per_original=10)
+augmented_images_np = np.stack(augmented_images_result)
 augmented_labels = np.ones(len(augmented_images_np))
 
 train_patches_expanded = np.expand_dims(train_patches, axis=-1)
-augmented_images_np_expanded = np.expand_dims(augmented_images_np, axis=-1)
-
-train_patches = np.concatenate((train_patches_expanded, augmented_images_np_expanded), axis=0)
-train_labels = np.concatenate((train_labels, augmented_labels), axis=0)
-
+train_patches_combined = np.concatenate((train_patches_expanded, augmented_images_np), axis=0)
+train_labels_combined = np.concatenate((train_labels, augmented_labels), axis=0)
 
 X_train, X_test, y_train, y_test = train_test_split(train_patches, train_labels, test_size=0.15, random_state=42)
 X_train = [X_train[:, 0], X_train[:, 1]]
