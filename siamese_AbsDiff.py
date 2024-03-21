@@ -195,7 +195,7 @@ def create_siamese_model(input_shape=(224, 224, 1)):
         
     processed_a = base_network(input_a)
     processed_b = base_network(input_b)
-        
+
     diff = Lambda(lambda tensors: K.abs(tensors[0] - tensors[1]))([processed_a, processed_b])
     predictions = Dense(2, activation='softmax')(diff)
         
@@ -388,7 +388,7 @@ print(f"Shape of test_patches[0]: {test_patches[0].shape}")
 print(f"Shape of test_patches[1]: {test_patches[1].shape}")
 print(f"Shape of test_labels: {test_labels.shape}")
 
-
+siam_wcw_model.summary()
 
 
 ## Without Class Weight
