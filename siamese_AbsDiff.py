@@ -356,7 +356,7 @@ cb_train_dataset = train_val_ghosting + train_val_non_ghosting
 cb_test_dataset = test_ghosting + test_non_ghosting
 
 print(f"Class balance train size {len(cb_train_dataset)}")
-print(f"Class balance test size {len(cb_test_dataset}")
+print(f"Class balance test size {len(cb_test_dataset)}")
 
 
 cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
