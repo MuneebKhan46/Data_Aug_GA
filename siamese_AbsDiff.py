@@ -277,7 +277,9 @@ y_test = keras.utils.to_categorical(y_test, 2)
 
 print(len(X_train))
 print(len(X_test))
-
+print(f"Shape of train_patches[0]: {X_train[0].shape}")
+print(f"Shape of train_patches[1]: {X_train[1].shape}")
+print(f"Shape of train_labels: {y_train.shape}")
 
 ## Without Class Weight
 
@@ -384,16 +386,20 @@ test_patches = [test_patches[:, 0], test_patches[:, 1]]
 test_labels = np.array(test_labels)
 test_labels = keras.utils.to_categorical(test_labels, 2)
 
+print(f"Shape of train_patches[0]: {X_train[0].shape}")
+print(f"Shape of train_patches[1]: {X_train[1].shape}")
+print(f"Shape of train_labels: {y_train.shape}")
 print(f"Shape of test_patches[0]: {test_patches[0].shape}")
 print(f"Shape of test_patches[1]: {test_patches[1].shape}")
 print(f"Shape of test_labels: {test_labels.shape}")
 
-siam_wcw_model.summary()
 
 
 ## Without Class Weight
 
-test_loss, test_acc = siam_wcw_model.evaluate(test_patches, test_labels)
+# test_loss, test_acc = siam_wcw_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = siam_wcw_model.evaluate([test_patches[0][:10], test_patches[1][:10]], test_labels[:10])
+
 test_acc  = test_acc *100
 
 predictions = siam_wcw_model.predict(test_patches)
