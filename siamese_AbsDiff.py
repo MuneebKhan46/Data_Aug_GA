@@ -286,90 +286,90 @@ siam_wcw_model = create_siamese_model()
 siam_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 wcw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-wcw_history = siam_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
+wcw_history = siam_wcw_model.fit(X_train, y_train, epochs=5, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
 
 
-# With Class Weight
+# # With Class Weight
 
-ng = len(train_patches[train_labels == 0])
-ga =  len(train_patches[train_labels == 1])
-total = ng + ga
+# ng = len(train_patches[train_labels == 0])
+# ga =  len(train_patches[train_labels == 1])
+# total = ng + ga
 
-imbalance_ratio = ng / ga  
-weight_for_0 = (1 / ng) * (total / 2.0)
-weight_for_1 = (1 / ga) * (total / 2.0)
-class_weight = {0: weight_for_0, 1: weight_for_1}
+# imbalance_ratio = ng / ga  
+# weight_for_0 = (1 / ng) * (total / 2.0)
+# weight_for_1 = (1 / ga) * (total / 2.0)
+# class_weight = {0: weight_for_0, 1: weight_for_1}
 
-print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
-print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
+# print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
+# print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
-opt = Adam(learning_rate=0.0001)
-siam_cw_model = create_siamese_model()
-siam_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-
-
-cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cw_history = siam_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
+# opt = Adam(learning_rate=0.0001)
+# siam_cw_model = create_siamese_model()
+# siam_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-# With Class Balance
+# cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+# cw_history = siam_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
+
+
+# # With Class Balance
  
-combined = list(zip(train_patches, train_labels))
-combined = sklearn_shuffle(combined)
+# combined = list(zip(train_patches, train_labels))
+# combined = sklearn_shuffle(combined)
 
-ghosting_artifacts = [item for item in combined if item[1] == 1]
-non_ghosting_artifacts = [item for item in combined if item[1] == 0]
+# ghosting_artifacts = [item for item in combined if item[1] == 1]
+# non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 
-print(len(ghosting_artifacts))
-print(len(non_ghosting_artifacts))
+# print(len(ghosting_artifacts))
+# print(len(non_ghosting_artifacts))
 
-num_ghosting_artifacts = len(ghosting_artifacts)
-num_non_ghosting_artifacts = len(non_ghosting_artifacts)
-num_train_val_ghosting = len(ghosting_artifacts)
-num_train_val_non_ghosting = len(ghosting_artifacts)
-
-
-num_test_ghosting = num_ghosting_artifacts - num_train_val_ghosting
-num_test_non_ghosting = num_non_ghosting_artifacts - num_train_val_non_ghosting
+# num_ghosting_artifacts = len(ghosting_artifacts)
+# num_non_ghosting_artifacts = len(non_ghosting_artifacts)
+# num_train_val_ghosting = len(ghosting_artifacts)
+# num_train_val_non_ghosting = len(ghosting_artifacts)
 
 
-train_val_ghosting = ghosting_artifacts[:num_train_val_ghosting]
-test_ghosting = ghosting_artifacts[num_train_val_ghosting:]
-train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_non_ghosting]
-test_non_ghosting = non_ghosting_artifacts[num_train_val_non_ghosting:]
+# num_test_ghosting = num_ghosting_artifacts - num_train_val_ghosting
+# num_test_non_ghosting = num_non_ghosting_artifacts - num_train_val_non_ghosting
 
 
-cb_train_dataset = train_val_ghosting + train_val_non_ghosting
-cb_test_dataset = test_ghosting + test_non_ghosting
-
-print(len(cb_train_dataset))
-print(len(cb_test_dataset))
-
-
-cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
-cb_test_patches, cb_test_labels  = zip(*cb_test_dataset)
-
-cb_train_patches = np.array(cb_train_patches)
-cb_train_labels = np.array(cb_train_labels)
-cb_test_patches = np.array(cb_test_patches)
-cb_test_labels = np.array(cb_test_labels)
-
-cb_train_patches = [cb_train_patches[:, 0], cb_train_patches[:, 1]]
-cb_test_patches = [cb_test_patches[:, 0], cb_test_patches[:, 1]]
+# train_val_ghosting = ghosting_artifacts[:num_train_val_ghosting]
+# test_ghosting = ghosting_artifacts[num_train_val_ghosting:]
+# train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_non_ghosting]
+# test_non_ghosting = non_ghosting_artifacts[num_train_val_non_ghosting:]
 
 
-cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
-cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
+# cb_train_dataset = train_val_ghosting + train_val_non_ghosting
+# cb_test_dataset = test_ghosting + test_non_ghosting
+
+# print(len(cb_train_dataset))
+# print(len(cb_test_dataset))
 
 
-opt = Adam(learning_rate=0.0001)
-siam_cb_model = create_siamese_model()
-siam_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+# cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
+# cb_test_patches, cb_test_labels  = zip(*cb_test_dataset)
+
+# cb_train_patches = np.array(cb_train_patches)
+# cb_train_labels = np.array(cb_train_labels)
+# cb_test_patches = np.array(cb_test_patches)
+# cb_test_labels = np.array(cb_test_labels)
+
+# cb_train_patches = [cb_train_patches[:, 0], cb_train_patches[:, 1]]
+# cb_test_patches = [cb_test_patches[:, 0], cb_test_patches[:, 1]]
+
+
+# cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
+# cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
+
+
+# opt = Adam(learning_rate=0.0001)
+# siam_cb_model = create_siamese_model()
+# siam_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
 
-cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cb_history = siam_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
+# cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+# cb_history = siam_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 
 
 ## Testing
@@ -377,7 +377,6 @@ cb_history = siam_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, cla
 test_patches = np.array(test_patches)
 test_patches = test_patches.reshape((-1, 224, 224, 1))
 test_patches = [test_patches[:, 0],  test_patches[:, 1]]
-
 
 test_labels = np.array(test_labels)
 test_labels = keras.utils.to_categorical(test_labels, 2)
