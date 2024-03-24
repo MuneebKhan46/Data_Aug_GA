@@ -258,6 +258,19 @@ train_labels = np.array(train_labels)
 test_patches = np.array(test_patches)
 test_labels = np.array(test_labels)
 
+combined = list(zip(train_patches_combined, train_labels_combined))
+combined = sklearn_shuffle(combined)
+
+
+ng = len(train_patches[train_labels == 0])
+ga =  len(train_patches[train_labels == 1])
+total = ng + ga
+
+imbalance_ratio = ng / ga  
+weight_for_0 = (1 / ng) * (total / 2.0)
+weight_for_1 = (1 / ga) * (total / 2.0)
+class_weight = {0: weight_for_0, 1: weight_for_1
+
 
 ghosting_patches = train_patches[train_labels == 1]
 
@@ -280,8 +293,6 @@ train_labels_combined = np.concatenate((train_labels, augmented_labels), axis=0)
 
 # With Class Balance
  
-combined = list(zip(train_patches_combined, train_labels_combined))
-combined = sklearn_shuffle(combined)
 
 ghosting_artifacts = [item for item in combined if item[1] == 1]
 non_ghosting_artifacts = [item for item in combined if item[1] == 0]
