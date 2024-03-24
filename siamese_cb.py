@@ -312,11 +312,11 @@ num_train_val_ghosting = len(ghosting_artifacts)
 num_train_val_non_ghosting = len(non_ghosting_artifacts)
 
 print("###########################")
-print(len(num_ghosting_artifacts))
-print(len(num_non_ghosting_artifacts))
+print(num_ghosting_artifacts)
+print((num_non_ghosting_artifacts))
 print("###########################")
-print(len(num_train_val_ghosting))
-print(len(num_train_val_non_ghosting))
+print((num_train_val_ghosting))
+print((num_train_val_non_ghosting))
 
 
 num_test_ghosting = num_ghosting_artifacts - num_train_val_ghosting
