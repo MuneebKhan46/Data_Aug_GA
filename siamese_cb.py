@@ -318,7 +318,7 @@ print(len(cb_train_patches))
 print(len(cb_test_patches))
 print(f"Shape of test_patches[0]: {cb_test_patches[0].shape}")
 print(f"Shape of test_patches[1]: {cb_test_patches[1].shape}")
-print(f"Shape of test_labels: {cb_test_patches.shape}")
+print(f"Shape of test_labels: {cb_test_labels.shape}")
 
 opt = Adam(learning_rate=0.0001)
 siam_cb_model = create_siamese_model()
