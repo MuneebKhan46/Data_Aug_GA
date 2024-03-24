@@ -309,35 +309,39 @@ print(f"Non Ghosting Artifacts: {len(non_ghosting_artifacts)}")
 num_ghosting_artifacts = len(ghosting_artifacts)
 num_non_ghosting_artifacts = len(non_ghosting_artifacts)
 num_train_val_ghosting = len(ghosting_artifacts)
-num_train_val_non_ghosting = len(non_ghosting_artifacts)
+num_train_val_non_ghosting = len(ghosting_artifacts)
 
-print("###########################")
+print("########GA/N.GA###################")
 print(num_ghosting_artifacts)
 print((num_non_ghosting_artifacts))
-print("###########################")
+print("########TRAIN/VAL###################")
 print((num_train_val_ghosting))
 print((num_train_val_non_ghosting))
 
 
-num_test_ghosting = num_ghosting_artifacts - num_train_val_ghosting
-num_test_non_ghosting = num_non_ghosting_artifacts - num_train_val_ghosting
+# num_test_ghosting = num_ghosting_artifacts - num_train_val_ghosting
+# num_test_non_ghosting = num_non_ghosting_artifacts - num_train_val_ghosting
 
-print("###########################")
-print(num_test_ghosting)
-print(num_test_non_ghosting)
+# print("###########################")
+# print(num_test_ghosting)
+# print(num_test_non_ghosting)
 
+
+# train_val_ghosting = ghosting_artifacts[:num_train_val_ghosting]
+# train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_non_ghosting]
 
 train_val_ghosting = ghosting_artifacts[:num_train_val_ghosting]
-test_ghosting = ghosting_artifacts[num_train_val_ghosting:]
-train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_non_ghosting]
-test_non_ghosting = non_ghosting_artifacts[num_train_val_non_ghosting:]
+train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_ghosting]
 
-print("###########################")
+# test_ghosting = ghosting_artifacts[num_train_val_ghosting:]
+# test_non_ghosting = non_ghosting_artifacts[num_train_val_non_ghosting:]
+
+print("############TVL-GA###############")
 print(len(train_val_ghosting))
-print(len(test_ghosting))
-print("###########################")
+# print((test_ghosting))
+print("#############TL-NGA##############")
 print(len(train_val_non_ghosting))
-print(len(test_non_ghosting))
+# print((test_non_ghosting))
 
 
 cb_train_dataset = train_val_ghosting + train_val_non_ghosting
@@ -348,12 +352,12 @@ print(f"Class balance test size {len(cb_test_dataset)}")
 
 
 # cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
-# cb_test_patches, cb_test_labels  = zip(*cb_test_dataset)
+cb_test_patches, cb_test_labels  = zip(*cb_test_dataset)
 
-# # cb_train_patches = np.array(cb_train_patches)
-# # cb_train_labels = np.array(cb_train_labels)
-# # cb_test_patches = np.array(cb_test_patches)
-# # cb_test_labels = np.array(cb_test_labels)
+# cb_train_patches = np.array(cb_train_patches)
+# cb_train_labels = np.array(cb_train_labels)
+# cb_test_patches = np.array(cb_test_patches)
+# cb_test_labels = np.array(cb_test_labels)
 
 # cb_train_patches = [cb_train_patches[:, 0], cb_train_patches[:, 1]]
 # cb_test_patches = [cb_test_patches[:, 0], cb_test_patches[:, 1]]
