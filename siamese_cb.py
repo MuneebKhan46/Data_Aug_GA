@@ -269,7 +269,7 @@ total = ng + ga
 imbalance_ratio = ng / ga  
 weight_for_0 = (1 / ng) * (total / 2.0)
 weight_for_1 = (1 / ga) * (total / 2.0)
-class_weight = {0: weight_for_0, 1: weight_for_1
+class_weight = {0: weight_for_0, 1: weight_for_1}
 
 
 ghosting_patches = train_patches[train_labels == 1]
