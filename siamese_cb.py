@@ -305,67 +305,31 @@ non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 print(f"Ghosting Artifacts: {len(ghosting_artifacts)}")
 print(f"Non Ghosting Artifacts: {len(non_ghosting_artifacts)}")
 
-
 num_ghosting_artifacts = len(ghosting_artifacts)
-num_non_ghosting_artifacts = len(non_ghosting_artifacts)
-num_train_val_ghosting = len(ghosting_artifacts)
-num_train_val_non_ghosting = len(ghosting_artifacts)
-
-print("########GA/N.GA###################")
-print(num_ghosting_artifacts)
-print((num_non_ghosting_artifacts))
-print("########TRAIN/VAL###################")
-print((num_train_val_ghosting))
-print((num_train_val_non_ghosting))
 
 
-# num_test_ghosting = num_ghosting_artifacts - num_train_val_ghosting
-# num_test_non_ghosting = num_non_ghosting_artifacts - num_train_val_ghosting
-
-# print("###########################")
-# print(num_test_ghosting)
-# print(num_test_non_ghosting)
-
-
-# train_val_ghosting = ghosting_artifacts[:num_train_val_ghosting]
-# train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_non_ghosting]
-
-train_val_ghosting = ghosting_artifacts[:num_train_val_ghosting]
-train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_ghosting]
-
-# test_ghosting = ghosting_artifacts[num_train_val_ghosting:]
-# test_non_ghosting = non_ghosting_artifacts[num_train_val_non_ghosting:]
-
-print("############TVL-GA###############")
-print(len(train_val_ghosting))
-# print((test_ghosting))
-print("#############TL-NGA##############")
-print(len(train_val_non_ghosting))
-# print((test_non_ghosting))
-
+train_val_ghosting = ghosting_artifacts[:num_ghosting_artifacts]
+train_val_non_ghosting = non_ghosting_artifacts[:num_ghosting_artifacts]
 
 cb_train_dataset = train_val_ghosting + train_val_non_ghosting
-cb_test_dataset = test_ghosting + test_non_ghosting
 
 print(f"Class balance train size {len(cb_train_dataset)}")
-print(f"Class balance test size {len(cb_test_dataset)}")
 
+cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
 
-# cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
-cb_test_patches, cb_test_labels  = zip(*cb_test_dataset)
+cb_train_patches, cb_test_patches, cb_train_labels, cb_test_labels = train_test_split(cb_train_patches, cb_train_labels, test_size=0.20, random_state=42)
 
-# cb_train_patches = np.array(cb_train_patches)
-# cb_train_labels = np.array(cb_train_labels)
-# cb_test_patches = np.array(cb_test_patches)
-# cb_test_labels = np.array(cb_test_labels)
+cb_train_patches = [cb_train_patches[:, 0], cb_train_patches[:, 1]]
+cb_test_patches = [cb_test_patches[:, 0], cb_test_patches[:, 1]]
 
-# cb_train_patches = [cb_train_patches[:, 0], cb_train_patches[:, 1]]
-# cb_test_patches = [cb_test_patches[:, 0], cb_test_patches[:, 1]]
+cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
+cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 
-
-# cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
-# cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
-
+print(len(cb_train_patches))
+print(len(cb_test_patches))
+print(f"Shape of test_patches[0]: {cb_test_patches[0].shape}")
+print(f"Shape of test_patches[1]: {cb_test_patches[1].shape}")
+print(f"Shape of test_labels: {cb_test_patches.shape}")
 
 # opt = Adam(learning_rate=0.0001)
 # siam_cb_model = create_siamese_model()
