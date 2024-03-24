@@ -333,11 +333,11 @@ train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_non_ghosting]
 test_non_ghosting = non_ghosting_artifacts[num_train_val_non_ghosting:]
 
 print("###########################")
-print(train_val_ghosting)
-print((test_ghosting))
+print(len(train_val_ghosting))
+print(len(test_ghosting))
 print("###########################")
-print((train_val_non_ghosting))
-print((test_non_ghosting))
+print(len(train_val_non_ghosting))
+print(len(test_non_ghosting))
 
 
 cb_train_dataset = train_val_ghosting + train_val_non_ghosting
