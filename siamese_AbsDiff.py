@@ -1,7 +1,7 @@
-import tensorflow as tf
 import numpy as np
 import os
 from os import path
+import tensorflow as tf
 import csv
 import cv2
 import textwrap
@@ -162,7 +162,7 @@ def augmented_images_paired(data, num_augmented_images_per_original):
         denoised_expanded = np.expand_dims(denoised, axis=0)
         
         
-        seed = np.random.randint(0, 10000)  # Ensure a consistent seed for both
+        seed = np.random.randint(0, 10000)
 
         temp_generator_original = data_augmentation.flow(original_expanded, batch_size=1, seed=seed)
         temp_generator_denoised = data_augmentation.flow(denoised_expanded, batch_size=1, seed=seed)
@@ -213,8 +213,8 @@ print(len(paired_patches))
 
 
 diff_patches_np, labels_np = prepare_data(paired_patches, labels)
-print(diff_patches_np.shape)
-print(labels_np.shape)
+print(f"Patch Shape {diff_patches_np.shape}")
+print(f"label Shape {labels_np.shape}")
 
 
 
@@ -225,8 +225,11 @@ combined = sklearn_shuffle(combined)
 ghosting_artifacts = [item for item in combined if item[1] == 1]
 non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 
-num_ghosting_artifacts = 3502
-num_non_ghosting_artifacts = 28446
+print(f"Ghosting Artifacts: {len(ghosting_artifacts)}")
+print(f"Non Ghosting Artifacts: {len(non_ghosting_artifacts)}")
+
+num_ghosting_artifacts = len(ghosting_artifacts)
+num_non_ghosting_artifacts = len(non_ghosting_artifacts)
 num_test_ghosting = 1500
 num_test_non_ghosting = 1500
 
