@@ -278,22 +278,6 @@ print(f"Shape of Train_labels: {train_labels.shape}")
 
 train_labels_combined = np.concatenate((train_labels, augmented_labels), axis=0)
 
-# X_train, X_test, y_train, y_test = train_test_split(train_patches_combined, train_labels_combined, test_size=0.15, random_state=42)
-# X_train = [X_train[:, 0], X_train[:, 1]]
-# X_test = [X_test[:, 0], X_test[:, 1]]
-
-
-# y_train = keras.utils.to_categorical(y_train, 2)
-# y_test = keras.utils.to_categorical(y_test, 2)
-
-# print(len(X_train))
-# print(len(X_test))
-# print(f"Shape of test_patches[0]: {X_train[0].shape}")
-# print(f"Shape of test_patches[1]: {X_train[1].shape}")
-# print(f"Shape of test_labels: {y_test.shape}")
-
-
-
 # With Class Balance
  
 combined = list(zip(train_patches_combined, train_labels_combined))
@@ -319,10 +303,15 @@ cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
 
 cb_train_patches, cb_test_patches, cb_train_labels, cb_test_labels = train_test_split(cb_train_patches, cb_train_labels, test_size=0.20, random_state=42)
 
-cb_train_patches = [cb_train_patches[:, 0], cb_train_patches[:, 1]]
-cb_test_patches = [cb_test_patches[:, 0], cb_test_patches[:, 1]]
+cb_train_patches = np.array(cb_train_patches)
+cb_train_labels = np.array(cb_train_labels)
+cb_test_patches = np.array(cb_test_patches)
+cb_test_labels = np.array(cb_test_labels)
 
+cb_train_patches = [cb_train_patches[:, 0], cb_train_patches[:, 1]]
 cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
+
+cb_test_patches = [cb_test_patches[:, 0], cb_test_patches[:, 1]]
 cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 
 print(len(cb_train_patches))
@@ -331,33 +320,35 @@ print(f"Shape of test_patches[0]: {cb_test_patches[0].shape}")
 print(f"Shape of test_patches[1]: {cb_test_patches[1].shape}")
 print(f"Shape of test_labels: {cb_test_patches.shape}")
 
-# opt = Adam(learning_rate=0.0001)
-# siam_cb_model = create_siamese_model()
-# siam_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+opt = Adam(learning_rate=0.0001)
+siam_cb_model = create_siamese_model()
+siam_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
-
-
-# cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-# cb_history = siam_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
-
-
+cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cb_history = siam_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 
 
 # ## Testing
 
-# test_patches = np.array(test_patches)
-# test_patches = test_patches.reshape((3000, 2, 224, 224, 1))
-# test_patches = [test_patches[:, 0], test_patches[:, 1]] 
+test_patches = np.array(test_patches)
+test_patches = test_patches.reshape((3000, 2, 224, 224, 1))
+test_patches = [test_patches[:, 0], test_patches[:, 1]] 
 
-# test_labels = np.array(test_labels)
-# test_labels = keras.utils.to_categorical(test_labels, 2)
+test_labels = np.array(test_labels)
+test_labels = keras.utils.to_categorical(test_labels, 2)
 
+
+# print("#######################################")
+# print(test_patches_1.shape, test_patches_2.shape, test_labels.shape)
+# siam_cb_model.summary()
+# siam_cb_model.predict([test_patches_1[:10], test_patches_2[:10]])
+# print("#######################################")
 
 # ## With Class Balance
 
-# test_loss, test_acc = siam_cb_model.evaluate([test_patches[0][:3000], test_patches[1][:3000]], test_labels[:3000])
-# test_acc  = test_acc *100
-
+test_loss, test_acc = siam_cb_model.evaluate([test_patches[0][:10], test_patches[1][:10]], test_labels[:10])
+test_acc  = test_acc *100
+print(test_acc)
 # predictions = siam_cb_model.predict(test_patches)
 # predicted_labels = np.argmax(predictions, axis=1)
 # true_labels = np.argmax(test_labels, axis=-1)
