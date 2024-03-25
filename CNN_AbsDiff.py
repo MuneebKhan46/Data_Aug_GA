@@ -205,8 +205,8 @@ combined = sklearn_shuffle(combined)
 ghosting_artifacts = [item for item in combined if item[1] == 1]
 non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 
-num_ghosting_artifacts = 3502
-num_non_ghosting_artifacts = 27944
+num_ghosting_artifacts = len(ghosting_artifacts)
+num_non_ghosting_artifacts = len(non_ghosting_artifacts)
 num_test_ghosting = 1500
 num_test_non_ghosting = 1500
 
@@ -258,9 +258,6 @@ X_train, X_test, y_train, y_test = train_test_split(train_patches, train_labels,
 y_train = keras.utils.to_categorical(y_train, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
 
-print(len(X_train))
-print(len(X_test))
-
 print(X_train.shape)
 print(y_train.shape)
 print(X_test.shape)
@@ -303,40 +300,27 @@ cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_we
 
 # With Class Balance
  
-combined = list(zip(train_patches, train_labels))
+combined = list(zip(train_patches_combined, train_labels_combined))
 combined = sklearn_shuffle(combined)
 
 ghosting_artifacts = [item for item in combined if item[1] == 1]
 non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 
-print(len(ghosting_artifacts))
-print(len(non_ghosting_artifacts))
+print(f"Ghosting Artifacts: {len(ghosting_artifacts)}")
+print(f"Non Ghosting Artifacts: {len(non_ghosting_artifacts)}")
 
 num_ghosting_artifacts = len(ghosting_artifacts)
-num_non_ghosting_artifacts = len(non_ghosting_artifacts)
-num_train_val_ghosting = len(ghosting_artifacts)
-num_train_val_non_ghosting = len(ghosting_artifacts)
 
 
-num_test_ghosting = num_ghosting_artifacts - num_train_val_ghosting
-num_test_non_ghosting = num_non_ghosting_artifacts - num_train_val_non_ghosting
-
-
-train_val_ghosting = ghosting_artifacts[:num_train_val_ghosting]
-test_ghosting = ghosting_artifacts[num_train_val_ghosting:]
-train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_non_ghosting]
-test_non_ghosting = non_ghosting_artifacts[num_train_val_non_ghosting:]
-
+train_val_ghosting = ghosting_artifacts[:num_ghosting_artifacts]
+train_val_non_ghosting = non_ghosting_artifacts[:num_ghosting_artifacts]
 
 cb_train_dataset = train_val_ghosting + train_val_non_ghosting
-cb_test_dataset = test_ghosting + test_non_ghosting
-
-print(len(cb_train_dataset))
-print(len(cb_test_dataset))
-
+print(f"Class balance train size {len(cb_train_dataset)}")
 
 cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
-cb_test_patches, cb_test_labels  = zip(*cb_test_dataset)
+
+cb_train_patches, cb_test_patches, cb_train_labels, cb_test_labels = train_test_split(cb_train_patches, cb_train_labels, test_size=0.20, random_state=42)
 
 cb_train_patches = np.array(cb_train_patches)
 cb_train_labels = np.array(cb_train_labels)
