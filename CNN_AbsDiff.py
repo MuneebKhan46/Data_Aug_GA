@@ -249,11 +249,11 @@ augmented_labels = np.ones(len(augmented_images_np))
 train_patches_expanded = np.expand_dims(train_patches, axis=-1)
 augmented_images_np_expanded = np.expand_dims(augmented_images_np, axis=-1)
 
-train_patches = np.concatenate((train_patches_expanded, augmented_images_np_expanded), axis=0)
-train_labels = np.concatenate((train_labels, augmented_labels), axis=0)
+train_patches_combined = np.concatenate((train_patches_expanded, augmented_images_np_expanded), axis=0)
+train_labels_combined = np.concatenate((train_labels, augmented_labels), axis=0)
 
 
-X_train, X_test, y_train, y_test = train_test_split(train_patches, train_labels, test_size=0.15, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(train_patches_combined, train_labels_combined, test_size=0.15, random_state=42)
 
 y_train = keras.utils.to_categorical(y_train, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
