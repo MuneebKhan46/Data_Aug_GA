@@ -197,9 +197,6 @@ original_patches, denoised_patches, labels, denoised_image_names, all_patch_numb
 diff_patches = calculate_difference(original_patches, denoised_patches)
 diff_patches_np, labels_np = prepare_data(diff_patches, labels)
 
-print(len(diff_patches))
-
-
 combined = list(zip(diff_patches_np, labels_np, denoised_image_names, all_patch_numbers))
 combined = sklearn_shuffle(combined)
 
@@ -207,8 +204,8 @@ combined = sklearn_shuffle(combined)
 ghosting_artifacts = [item for item in combined if item[1] == 1]
 non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 
-num_ghosting_artifacts = 3502
-num_non_ghosting_artifacts = 28446
+num_ghosting_artifacts = len(ghosting_artifacts)
+num_non_ghosting_artifacts = len(non_ghosting_artifacts)
 num_test_ghosting = 1500
 num_test_non_ghosting = 1500
 
@@ -238,17 +235,10 @@ train_labels = np.array(train_labels)
 test_patches = np.array(test_patches)
 test_labels = np.array(test_labels)
 
-
-print(len(train_patches))
-print(len(test_patches))
-
-
 ghosting_patches = train_patches[train_labels == 1]
 
 ghosting_patches_expanded = np.expand_dims(ghosting_patches, axis=-1)
 augmented_images = augmented_images(ghosting_patches_expanded, num_augmented_images_per_original=10)
-
-
 
 augmented_images_np = np.stack(augmented_images)
 augmented_labels = np.ones(len(augmented_images_np))
@@ -256,17 +246,13 @@ augmented_labels = np.ones(len(augmented_images_np))
 train_patches_expanded = np.expand_dims(train_patches, axis=-1)
 augmented_images_np_expanded = np.expand_dims(augmented_images_np, axis=-1)
 
-train_patches = np.concatenate((train_patches_expanded, augmented_images_np_expanded), axis=0)
-train_labels = np.concatenate((train_labels, augmented_labels), axis=0)
+train_patches_combined = np.concatenate((train_patches_expanded, augmented_images_np_expanded), axis=0)
+train_labels_combined = np.concatenate((train_labels, augmented_labels), axis=0)
 
-
-X_train, X_test, y_train, y_test = train_test_split(train_patches, train_labels, test_size=0.15, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(train_patches_combined, train_labels_combined, test_size=0.20, random_state=42)
 
 y_train = keras.utils.to_categorical(y_train, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
-
-print(len(X_train))
-print(len(X_test))
 
 print(X_train.shape)
 print(y_train.shape)
@@ -310,50 +296,38 @@ cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_we
 
 # With Class Balance
  
-combined = list(zip(train_patches, train_labels))
+combined = list(zip(train_patches_combined, train_labels_combined))
 combined = sklearn_shuffle(combined)
 
 ghosting_artifacts = [item for item in combined if item[1] == 1]
 non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 
-print(len(ghosting_artifacts))
-print(len(non_ghosting_artifacts))
+print(f"Ghosting Artifacts: {len(ghosting_artifacts)}")
+print(f"Non Ghosting Artifacts: {len(non_ghosting_artifacts)}")
 
 num_ghosting_artifacts = len(ghosting_artifacts)
-num_non_ghosting_artifacts = len(non_ghosting_artifacts)
-num_train_val_ghosting = len(ghosting_artifacts)
-num_train_val_non_ghosting = len(ghosting_artifacts)
 
 
-num_test_ghosting = num_ghosting_artifacts - num_train_val_ghosting
-num_test_non_ghosting = num_non_ghosting_artifacts - num_train_val_non_ghosting
-
-
-train_val_ghosting = ghosting_artifacts[:num_train_val_ghosting]
-test_ghosting = ghosting_artifacts[num_train_val_ghosting:]
-train_val_non_ghosting = non_ghosting_artifacts[:num_train_val_non_ghosting]
-test_non_ghosting = non_ghosting_artifacts[num_train_val_non_ghosting:]
-
+train_val_ghosting = ghosting_artifacts[:num_ghosting_artifacts]
+train_val_non_ghosting = non_ghosting_artifacts[:num_ghosting_artifacts]
 
 cb_train_dataset = train_val_ghosting + train_val_non_ghosting
-cb_test_dataset = test_ghosting + test_non_ghosting
-
-print(len(cb_train_dataset))
-print(len(cb_test_dataset))
-
+print(f"Class balance train size {len(cb_train_dataset)}")
 
 cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
-cb_test_patches, cb_test_labels  = zip(*cb_test_dataset)
+
+cb_train_patches, cb_test_patches, cb_train_labels, cb_test_labels = train_test_split(cb_train_patches, cb_train_labels, test_size=0.20, random_state=42)
 
 cb_train_patches = np.array(cb_train_patches)
 cb_train_labels = np.array(cb_train_labels)
 cb_test_patches = np.array(cb_test_patches)
 cb_test_labels = np.array(cb_test_labels)
 
+print(f"Train size {len(cb_train_patches)}")
+print(f"Test size {len(cb_test_patches)}")
 
 cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
 cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
-
 
 opt = Adam(learning_rate=0.0001)
 cnn_cb_model = create_cnn_model()
