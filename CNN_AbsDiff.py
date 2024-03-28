@@ -639,7 +639,7 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 misclass_En_csv_path = '/Dataset/CSV/Ensemble_CNN_AbsDiff_misclassified_patches.csv'
-
+misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 for index in misclassified_indexes:
     denoised_image_name = test_image_names[index]
