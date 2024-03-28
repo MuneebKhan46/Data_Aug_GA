@@ -168,29 +168,51 @@ def augmented_images(data, num_augmented_images_per_original):
 
 
 def create_vgg16_model(input_shape=(224,224, 1)):
-    model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3,3), activation='elu', input_shape=input_shape))
-    model.add(Conv2D(32, kernel_size=(3,3), activation='elu'))
+    # Block 1
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(input_shape=input_shape)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
 
-    model.add(MaxPooling2D(pool_size=(3,3)))
-    model.add(BatchNormalization())     
-    # model.add(Dropout(0.2))
+    # Block 2
+    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1')(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
 
-    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
-    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+    # Block 3
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
 
-    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
-    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+    # Block 4
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
 
-    model.add(BatchNormalization())
-    # model.add(Dropout(0.35))
+    # Block 5
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
-    model.add(Flatten())
-    model.add(Dense(128, activation='elu'))
+    # Flatten and fully connected layers
+    x = Flatten(name='flatten')(x)
+    x = Dense(4096, activation='relu', name='fc1')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(4096, activation='relu', name='fc2')(x)
+    x = Dropout(0.5)(x)
 
-    model.add(Dense(2, activation='softmax'))
+    # Output layer
+    x = Dense(2, activation='softmax', name='predictions')(x)
+
+    model = Model(inputs=input_layer, outputs=x)
+
     return model
 
+
+##########################################################################################################################################################################
+##########################################################################################################################################################################
 
 original_patches, denoised_patches, labels, denoised_image_names, all_patch_numbers = load_data_from_csv(csv_path, original_dir, denoised_dir)
 
@@ -259,8 +281,11 @@ y_train = keras.utils.to_categorical(y_train, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
 
 print(X_train.shape)
-print(y_train.shape)
+print(X_test.shape)
 
+
+##########################################################################################################################################################################
+##########################################################################################################################################################################
 
 
 # Without Class Weight
@@ -339,14 +364,19 @@ cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/VGG16_AbsDiff_CB.
 cb_history = vgg16_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 
 
+##########################################################################################################################################################################
+##########################################################################################################################################################################
+
+
 # Testing
 
 test_patches = np.array(test_patches)
-test_patches = test_patches.reshape((-1, 224, 224, 1))  # Reshape to include the channel dimension
+test_patches = test_patches.reshape((-1, 224, 224, 1))  
 
 test_labels = np.array(test_labels)
 test_labels = keras.utils.to_categorical(test_labels, 2)
 
+##########################################################################################################################################################################
 
 ## Without Class Weight
 
@@ -427,6 +457,7 @@ class_1_precision = report['Ghosting Artifact']['precision']
 models.append(vgg16_wcw_model)
 class_1_accuracies.append(class_1_precision)
 
+##########################################################################################################################################################################
 
 ## With Class Weight
 
@@ -509,6 +540,7 @@ models.append(vgg16_cw_model)
 class_1_accuracies.append(class_1_precision)
 
 
+##########################################################################################################################################################################
 
 ## With Class Balance
 
@@ -592,6 +624,7 @@ class_1_precision = report['Ghosting Artifact']['precision']
 models.append(vgg16_cw_model)
 class_1_accuracies.append(class_1_precision)
 
+##########################################################################################################################################################################
 
 ## ENSEMBLE 
 
