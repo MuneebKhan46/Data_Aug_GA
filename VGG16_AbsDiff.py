@@ -168,8 +168,9 @@ def augmented_images(data, num_augmented_images_per_original):
 
 
 def create_vgg16_model(input_shape=(224,224, 1)):
+    input_layer = Input(shape=input_shape)
     # Block 1
-    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(input_shape)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(input_layer)
     x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
     x = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
 
