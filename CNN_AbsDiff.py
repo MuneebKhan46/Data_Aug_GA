@@ -362,6 +362,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
 misclass_wCW_csv_path = '/Dataset/CSV/CNN_AbsDiff_wCW_misclassified_patches.csv'
+
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -445,6 +446,7 @@ misclass_CW_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CW_misclassified_patches.csv'
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
+
 for index in misclassified_indexes:
     denoised_image_name = test_image_names[index]
     patch_number = test_patch_numbers[index]
@@ -523,7 +525,8 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CB_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CB_misclassified_patches.csv'    
+misclass_CB_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CB_misclassified_patches.csv'
+
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -603,6 +606,7 @@ weights = np.array(class_1_accuracies) / np.sum(class_1_accuracies)
 predictions = np.array([model.predict(test_patches)[:, 1] for model in models])
 weighted_predictions = np.tensordot(weights, predictions, axes=([0], [0]))
 predicted_classes = (weighted_predictions > 0.5).astype(int)
+true_labels = np.argmax(test_labels, axis=-1)
 
 test_acc = accuracy_score(true_labels, predicted_classes)
 
@@ -639,7 +643,8 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 misclass_En_csv_path = '/Dataset/CSV/Ensemble_CNN_AbsDiff_misclassified_patches.csv'
-misclassified_indexes = np.where(predicted_labels != true_labels)[0]
+misclassified_indexes = np.where(predicted_classes != true_labels)[0]
+
 misclassified_data = []
 for index in misclassified_indexes:
     denoised_image_name = test_image_names[index]
