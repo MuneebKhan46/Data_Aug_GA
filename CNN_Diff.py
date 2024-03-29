@@ -600,7 +600,7 @@ weights = np.array(class_1_accuracies) / np.sum(class_1_accuracies)
 predictions = np.array([model.predict(test_patches)[:, 1] for model in models])
 weighted_predictions = np.tensordot(weights, predictions, axes=([0], [0]))
 predicted_classes = (weighted_predictions > 0.5).astype(int)
-
+true_labels = np.argmax(test_labels, axis=-1)
 test_acc = accuracy_score(true_labels, predicted_classes)
 
 weighted_precision, weighted_recall, weighted_f1_score, _ = precision_recall_fscore_support(true_labels, predicted_classes, average='weighted')
@@ -637,7 +637,9 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 misclass_En_csv_path = '/Dataset/CSV/Ensemble_CNN_Diff_misclassified_patches.csv'
 
+misclassified_indexes = np.where(predicted_classes != true_labels)[0]
 misclassified_data = []
+
 for index in misclassified_indexes:
     denoised_image_name = test_image_names[index]
     patch_number = test_patch_numbers[index]
