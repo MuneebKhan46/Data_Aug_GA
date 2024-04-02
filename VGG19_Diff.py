@@ -317,9 +317,10 @@ class_weight = {0: weight_for_0, 1: weight_for_1}
 print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
 print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
-opt = Adam(learning_rate=0.0001)
-vgg19_cw_model = create_vgg19_model()
-# vgg19_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+with strategy.scope():
+    opt = Adam(learning_rate=0.0001)
+    vgg19_cw_model = create_vgg19_model()
+    vgg19_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/VGG19_Diff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cw_history = vgg19_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
@@ -359,9 +360,10 @@ cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
 cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 
 
-opt = Adam(learning_rate=0.0001)
-vgg19_cb_model = create_vgg19_model()
-# vgg19_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+with strategy.scope():
+    opt = Adam(learning_rate=0.0001)
+    vgg19_cb_model = create_vgg19_model()
+    vgg19_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
 cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/VGG19_Diff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
