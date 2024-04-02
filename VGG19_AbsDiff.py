@@ -21,8 +21,6 @@ from sklearn.utils import shuffle as sklearn_shuffle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report, accuracy_score
 from tensorflow.keras.optimizers import Adam
 
-strategy = tf.distribute.MirroredStrategy()
-
 models = []
 class_1_accuracies = []
 
@@ -170,7 +168,7 @@ def augmented_images(data, num_augmented_images_per_original):
 
 def create_vgg19_model(input_shape=(224,224, 1)):
     input_layer = Input(shape=input_shape)
-    
+
     # Block 1
     x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(input_layer)
     x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
@@ -292,13 +290,12 @@ print(X_test.shape)
 
 # Without Class Weight
 
-with strategy.scope():
-    opt = Adam(learning_rate=0.0001)
-    vgg19_wcw_model = create_vgg19_model()
-    vgg19_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+opt = Adam(learning_rate=0.0001)
+vgg19_wcw_model = create_vgg19_model()
+vgg19_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
     
 wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/VGG19_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-wcw_history = vgg19_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
+wcw_history = vgg19_wcw_model.fit(X_train, y_train, epochs=5, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
 
 ##########################################################################################################################################################################
 
@@ -316,10 +313,9 @@ wcw_history = vgg19_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(
 # print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
 # print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
-# with strategy.scope():
-#     opt = Adam(learning_rate=0.0001)
-#     vgg19_cw_model = create_vgg19_model()
-#     vgg19_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+# opt = Adam(learning_rate=0.0001)
+# vgg19_cw_model = create_vgg19_model()
+# vgg19_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 # cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/VGG19_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 # cw_history = vgg19_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
@@ -359,12 +355,9 @@ wcw_history = vgg19_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(
 # cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 
 
-# with strategy.scope():
-#     opt = Adam(learning_rate=0.0001)
-#     vgg19_cb_model = create_vgg19_model()
-#     vgg19_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-
-
+# opt = Adam(learning_rate=0.0001)
+# vgg19_cb_model = create_vgg19_model()
+# vgg19_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 # cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/VGG19_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 # cb_history = vgg19_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 
