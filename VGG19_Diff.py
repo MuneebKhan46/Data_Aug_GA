@@ -23,7 +23,6 @@ from tensorflow.keras.optimizers import Adam
 
 strategy = tf.distribute.MirroredStrategy()
 
-
 models = []
 class_1_accuracies = []
 
@@ -171,7 +170,7 @@ def augmented_images(data, num_augmented_images_per_original):
 
 
 def create_vgg19_model(input_shape=(224,224, 1)):
-    
+    opt = Adam(learning_rate=0.0001)
     with strategy.scope():
         input_layer = Input(shape=input_shape)
         # Block 1
@@ -297,7 +296,7 @@ print(X_test.shape)
 
 # Without Class Weight
 
-opt = Adam(learning_rate=0.0001)
+
 vgg19_wcw_model = create_vgg19_model()
 # vgg19_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
