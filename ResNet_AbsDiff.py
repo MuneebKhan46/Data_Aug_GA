@@ -217,7 +217,7 @@ def resnet_identity_block(x, filters, kernel_size):
     return x
 
 
-def create_resnet50_model(input_shape):
+def create_resnet50_model(input_shape=(224,224, 1)):
     inputs = Input(shape=input_shape)
 
     x = Conv2D(64, (7, 7), strides=(2, 2), padding='same')(inputs)
