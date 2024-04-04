@@ -166,7 +166,18 @@ def augmented_images(data, num_augmented_images_per_original):
             augmented_images.append(augmented_image)
     return augmented_images
 
+def mobile_net_block(x, filters, strides):
+    # Depthwise convolution
+    x = DepthwiseConv2D(kernel_size=(3, 3), strides=strides, padding='same')(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
 
+    # Pointwise convolution
+    x = Conv2D(filters, kernel_size=(1, 1), strides=(1, 1), padding='valid')(x)
+    x = BatchNormalization()(x)
+    x = ReLU()(x)
+
+    return x
 
 def create_mobnet_model(input_shape=(224,224, 1)):
   inputs = Input(shape=input_shape)
