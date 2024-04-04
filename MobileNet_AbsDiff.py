@@ -201,7 +201,7 @@ def create_mobnet_model(input_shape=(224,224, 1)):
 
   # Final part
   x = GlobalAveragePooling2D()(x)
-  x = Dense(2, activation='softmax')(x)  # Adjust number of units and activation function as per your task
+  x = Dense(2, activation='softmax')(x)
 
   model = Model(inputs=inputs, outputs=x)
 
