@@ -208,8 +208,8 @@ non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 num_ghosting_artifacts = len(ghosting_artifacts)
 num_non_ghosting_artifacts = len(non_ghosting_artifacts)
 
-print(f" Total GA Patches: {len(num_ghosting_artifacts)}")
-print(f" Total NGA Labels: {len(num_non_ghosting_artifacts)}")
+print(f" Total GA Patches: {num_ghosting_artifacts}")
+print(f" Total NGA Labels: {num_non_ghosting_artifacts}")
 
 num_test_ghosting = 1500
 num_test_non_ghosting = 1500
