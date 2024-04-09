@@ -262,7 +262,7 @@ test_labels = np.array(test_labels)
 ghosting_patches = train_patches[train_labels == 1]
 
 ghosting_patches_expanded = np.expand_dims(ghosting_patches, axis=-1)
-augmented_images_result = augmented_images_paired(ghosting_patches_expanded, num_augmented_images_per_original=10)
+augmented_images_result = augmented_images_paired(ghosting_patches_expanded, num_augmented_images_per_original=11)
 augmented_images_np = np.stack(augmented_images_result)
 augmented_labels = np.ones(len(augmented_images_np))
 
@@ -465,6 +465,7 @@ model_name = "Siamese"
 feature_name = "Absolute Difference Map"
 technique = "Without Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
+print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
@@ -545,6 +546,7 @@ model_name = "Siamese"
 feature_name = "Absolute Difference Map"
 technique = "Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
+print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
@@ -627,6 +629,7 @@ model_name = "Siamese"
 feature_name = "Absolute Difference Map"
 technique = "Class Balance"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
+print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
