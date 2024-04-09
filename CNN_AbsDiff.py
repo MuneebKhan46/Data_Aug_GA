@@ -238,13 +238,13 @@ train_patches = np.array(train_patches)
 train_labels = np.array(train_labels)
 
 print(f" Total Train Patches: {len(train_patches)}")
-print(f" Total Train Labels: {len(train_lebels)}")
+print(f" Total Train Labels: {len(train_labels)}")
 
 test_patches = np.array(test_patches)
 test_labels = np.array(test_labels)
 
 print(f" Total Test Patches: {len(test_patches)}")
-print(f" Total Test Labels: {len(test_lebels)}")
+print(f" Total Test Labels: {len(test_labels)}")
 
 ghosting_patches = train_patches[train_labels == 1]
 
