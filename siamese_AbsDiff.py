@@ -27,7 +27,7 @@ class_1_accuracies = []
 
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
-csv_path     = '/Dataset/patch_label_median.csv'
+csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified.csv'
 result_file_path = "/Dataset/Results/Overall_results.csv"
 
 
