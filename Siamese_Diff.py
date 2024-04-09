@@ -27,7 +27,7 @@ class_1_accuracies = []
 
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
-csv_path     = '/Dataset/patch_label_median.csv'
+csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified.csv'
 result_file_path = "/Dataset/Results/Overall_results.csv"
 
 
@@ -461,6 +461,7 @@ model_name = "Siamese"
 feature_name = "Difference Map"
 technique = "Without Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
+print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
@@ -541,6 +542,7 @@ model_name = "Siamese"
 feature_name = "Difference Map"
 technique = "Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
+print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
@@ -623,6 +625,7 @@ model_name = "Siamese"
 feature_name = "Difference Map"
 technique = "Class Balance"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
+print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
