@@ -153,7 +153,7 @@ mask = gen_mask(canny, d)
 detected_image = ghosting_metric(fused_image, canny, d)
 count = cv2.countNonZero(detected_image)
 
-print('Number of ghosting patches = {}, {:.2f}%'.format(count, 100 * count / (720 * 12800 / (d * d))))
+print('Number of ghosting patches = {}, {:.2f}%'.format(count, 100 * count / (720 * 1280 / (d * d))))
 
 ghost_image = np.stack([fused_image]*3, axis=-1)  # Convert grayscale back to RGB for visualization
 for y in range((1080 // d) * d):
