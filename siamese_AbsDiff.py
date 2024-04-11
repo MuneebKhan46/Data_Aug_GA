@@ -8,12 +8,12 @@ import textwrap
 import pandas as pd
 import resource
 from tensorflow.keras.regularizers import l1
-
+import tensorflow.keras.backend as K
 from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import plot_model
 from keras.models import Sequential
-from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization, concatenate
+from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization, concatenate, Lambda
 from keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, array_to_img
 from sklearn.model_selection import train_test_split
