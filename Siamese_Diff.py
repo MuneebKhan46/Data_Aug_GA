@@ -1,25 +1,25 @@
+import tensorflow as tf
 import numpy as np
 import os
 from os import path
-import tensorflow as tf
 import csv
 import cv2
 import textwrap
 import pandas as pd
-from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, array_to_img
+import resource
+from tensorflow.keras.regularizers import l1
 
-import tensorflow.keras.backend as K
 from tensorflow import keras
 from tensorflow.keras.models import Model
 from tensorflow.keras.utils import plot_model
 from keras.models import Sequential
 from keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization, concatenate
-from keras.callbacks import ModelCheckpoint, EarlyStopping
-from keras.optimizers import Adam
+from keras.callbacks import ModelCheckpoint
+from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, array_to_img
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle as sklearn_shuffle
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report, accuracy_score
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Lambda
+from tensorflow.keras.optimizers import Adam
 
 
 models = []
@@ -27,8 +27,8 @@ class_1_accuracies = []
 
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
-csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified.csv'
-result_file_path = "/Dataset/Results/Overall_results.csv"
+csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified2.csv'
+result_file_path = "/Dataset/Results/New_Overall_results.csv"
 
 
 def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int, height: int):
@@ -294,9 +294,10 @@ opt = Adam(learning_rate=0.0001)
 siam_wcw_model = create_siamese_model()
 siam_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
-wcw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_Diff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+wcw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/Siamese_Diff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 wcw_history = siam_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
-
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print("%5.1f MByte" % memMb_vgg19)
 
 # With Class Weight
 
@@ -318,9 +319,10 @@ siam_cw_model = create_siamese_model()
 siam_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_Diff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/Siamese_Diff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cw_history = siam_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
-
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print("%5.1f MByte" % memMb_vgg19)
 
 # With Class Balance
  
@@ -369,9 +371,10 @@ opt = Adam(learning_rate=0.0001)
 siam_cb_model = create_siamese_model()
 siam_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
-cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/Siamese_Diff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/Siamese_Diff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cb_history = siam_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
-
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print("%5.1f MByte" % memMb_vgg19)
 
 
 
@@ -399,7 +402,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_wCW_csv_path = '/Dataset/CSV/Siamese_Diff_wCW_misclassified_patches.csv'
+misclass_wCW_csv_path = '/Dataset/New_CSV/Siamese_Diff_wCW_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -480,7 +483,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CW_csv_path  = '/Dataset/CSV/Siamese_Diff_CW_misclassified_patches.csv'    
+misclass_CW_csv_path  = '/Dataset/New_CSV/Siamese_Diff_CW_misclassified_patches.csv'    
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -561,7 +564,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CB_csv_path  = '/Dataset/CSV/Siamese_Diff_CB_misclassified_patches.csv'    
+misclass_CB_csv_path  = '/Dataset/New_CSV/Siamese_Diff_CB_misclassified_patches.csv'    
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -674,7 +677,7 @@ save_metric_details(model_name, technique, feature_name, test_acc, weighted_prec
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
-misclass_En_csv_path = '/Dataset/CSV/Ensemble_Siamese_Diff_misclassified_patches.csv'
+misclass_En_csv_path = '/Dataset/New_CSV/Ensemble_Siamese_Diff_misclassified_patches.csv'
 
 misclassified_indexes = np.where(predicted_classes != true_labels)[0]
 misclassified_data = []
