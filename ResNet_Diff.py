@@ -27,7 +27,7 @@ class_1_accuracies = []
 
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
-csv_path     = '/Dataset/patch_label_median.csv'
+csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified.csv'
 result_file_path = "/Dataset/Results/Overall_results.csv"
 
 def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int, height: int):
@@ -264,6 +264,10 @@ non_ghosting_artifacts = [item for item in combined if item[1] == 0]
 
 num_ghosting_artifacts = len(ghosting_artifacts)
 num_non_ghosting_artifacts = len(non_ghosting_artifacts)
+
+print(f" Total GA Patches: {num_ghosting_artifacts}")
+print(f" Total NGA Labels: {num_non_ghosting_artifacts}")
+
 num_test_ghosting = 1500
 num_test_non_ghosting = 1500
 
@@ -290,15 +294,19 @@ test_patches, test_labels, test_image_names, test_patch_numbers = zip(*test_data
 train_patches = np.array(train_patches)
 train_labels = np.array(train_labels)
 
+print(f" Total Train Patches: {len(train_patches)}")
+print(f" Total Train Labels: {len(train_labels)}")
+
 test_patches = np.array(test_patches)
 test_labels = np.array(test_labels)
+
+print(f" Total Test Patches: {len(test_patches)}")
+print(f" Total Test Labels: {len(test_labels)}")
 
 ghosting_patches = train_patches[train_labels == 1]
 
 ghosting_patches_expanded = np.expand_dims(ghosting_patches, axis=-1)
-augmented_images = augmented_images(ghosting_patches_expanded, num_augmented_images_per_original=10)
-
-
+augmented_images = augmented_images(ghosting_patches_expanded, num_augmented_images_per_original=11)
 
 augmented_images_np = np.stack(augmented_images)
 augmented_labels = np.ones(len(augmented_images_np))
@@ -309,14 +317,19 @@ augmented_images_np_expanded = np.expand_dims(augmented_images_np, axis=-1)
 train_patches_combined = np.concatenate((train_patches_expanded, augmented_images_np_expanded), axis=0)
 train_labels_combined = np.concatenate((train_labels, augmented_labels), axis=0)
 
+print(f" Total Augmented Patches: {len(train_patches_combined)}")
+aghosting_patches = train_patches_combined[train_labels_combined == 1]
+print(f" Total Augmented GA: {len(aghosting_patches)}")
 
 X_train, X_test, y_train, y_test = train_test_split(train_patches_combined, train_labels_combined, test_size=0.15, random_state=42)
 
 y_train = keras.utils.to_categorical(y_train, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
 
-print(X_train.shape)
-print(X_test.shape)
+print(f"X_Train Shape: {X_train.shape}")
+print(f"y_Train Shape: {y_train.shape}")
+print(f"X_Test Shape: {X_test.shape}")
+print(f"y_Test Shape: {y_test.shape}")
 
 
 ##########################################################################################################################################################################
