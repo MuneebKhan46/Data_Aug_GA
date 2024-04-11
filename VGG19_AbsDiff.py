@@ -6,6 +6,7 @@ import csv
 import cv2
 import textwrap
 import pandas as pd
+import resource
 
 from tensorflow.keras.regularizers import l1
 
@@ -309,7 +310,8 @@ vgg19_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=
     
 wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/new_Model/VGG19_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 wcw_history = vgg19_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
-
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print ("%5.1f MByte" (memMb_vgg19))
 ##########################################################################################################################################################################
 
 # With Class Weight
@@ -332,7 +334,8 @@ vgg19_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=[
 
 cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/VGG19_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cw_history = vgg19_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
-
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print ("%5.1f MByte" (memMb_vgg19))
 ##########################################################################################################################################################################
 
 # With Class Balance
@@ -373,7 +376,8 @@ vgg19_cb_model = create_vgg19_model()
 vgg19_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/VGG19_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cb_history = vgg19_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
-
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print ("%5.1f MByte" (memMb_vgg19))
 
 ##########################################################################################################################################################################
 ##########################################################################################################################################################################
