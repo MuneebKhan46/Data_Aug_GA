@@ -24,7 +24,7 @@ def load_yuv420_image(filename, width, height):
 
 def ghosting_metric(fused_image, edge_image, d):
     laplacian = cv2.Laplacian(edge_image, cv2.CV_64F)
-    cv2.imshow('laplacian', laplacian)
+    # cv2.imshow('laplacian', laplacian)
 
     height = edge_image.shape[0]
     width = edge_image.shape[1]
@@ -51,7 +51,7 @@ def ghosting_metric(fused_image, edge_image, d):
 
             count = cv2.countNonZero(patch_ij)
             if count >= d:
-                cv2.imshow('patch_ij', patch_ij)
+                # cv2.imshow('patch_ij', patch_ij)
                 n, labels = cv2.connectedComponents(patch_ij)
                 if n < 4:
                     result_image[j][i] = 0
