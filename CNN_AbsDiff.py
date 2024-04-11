@@ -27,8 +27,8 @@ class_1_accuracies = []
 
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
-csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified.csv'
-result_file_path = "/Dataset/Results/Overall_results.csv"
+csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified2.csv'
+result_file_path = "/Dataset/Results/New_Overall_results.csv"
 
 def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int, height: int):
     y_size = width * height
@@ -282,8 +282,10 @@ cnn_wcw_model = create_cnn_model()
 cnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/new_Model/CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print ("%5.1f MByte" (memMb_vgg19))
 
 
 # With Class Weight
@@ -305,8 +307,10 @@ cnn_cw_model = create_cnn_model()
 cnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print ("%5.1f MByte" (memMb_vgg19))
 
 
 # With Class Balance
@@ -348,9 +352,10 @@ cnn_cb_model = create_cnn_model()
 cnn_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/CNN_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cb_history = cnn_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
-
+memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+print ("%5.1f MByte" (memMb_vgg19))
 
 # Testing
 
@@ -372,7 +377,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_wCW_csv_path = '/Dataset/CSV/CNN_AbsDiff_wCW_misclassified_patches.csv'
+misclass_wCW_csv_path = '/Dataset/New_CSV/CNN_AbsDiff_wCW_misclassified_patches.csv'
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -453,7 +458,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CW_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CW_misclassified_patches.csv'    
+misclass_CW_csv_path  = '/Dataset/New_CSV/CNN_AbsDiff_CW_misclassified_patches.csv'    
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -536,7 +541,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CB_csv_path  = '/Dataset/CSV/CNN_AbsDiff_CB_misclassified_patches.csv'
+misclass_CB_csv_path  = '/Dataset/New_CSV/CNN_AbsDiff_CB_misclassified_patches.csv'
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -653,7 +658,7 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 
-misclass_En_csv_path = '/Dataset/CSV/Ensemble_CNN_AbsDiff_misclassified_patches.csv'
+misclass_En_csv_path = '/Dataset/New_CSV/Ensemble_CNN_AbsDiff_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_classes != true_labels)[0]
 
 misclassified_data = []
