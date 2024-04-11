@@ -27,7 +27,7 @@ class_1_accuracies = []
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
 csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified2.csv'
-result_file_path = "/Dataset/Results/Overall_results.csv"
+result_file_path = "/Dataset/Results/New_Overall_results.csv"
 
 def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int, height: int):
     y_size = width * height
@@ -271,7 +271,7 @@ print(f" Total Test Labels: {len(test_labels)}")
 ghosting_patches = train_patches[train_labels == 1]
 
 ghosting_patches_expanded = np.expand_dims(ghosting_patches, axis=-1)
-augmented_images = augmented_images(ghosting_patches_expanded, num_augmented_images_per_original=11)
+augmented_images = augmented_images(ghosting_patches_expanded, num_augmented_images_per_original=12)
 
 augmented_images_np = np.stack(augmented_images)
 augmented_labels = np.ones(len(augmented_images_np))
@@ -307,7 +307,7 @@ opt = Adam(learning_rate=0.0001)
 vgg19_wcw_model = create_vgg19_model()
 vgg19_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
     
-wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/VGG19_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/new_Model/VGG19_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 wcw_history = vgg19_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
 
 ##########################################################################################################################################################################
@@ -330,7 +330,7 @@ opt = Adam(learning_rate=0.0001)
 vgg19_cw_model = create_vgg19_model()
 vgg19_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
-cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/VGG19_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/VGG19_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cw_history = vgg19_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
 
 ##########################################################################################################################################################################
@@ -371,7 +371,7 @@ cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 opt = Adam(learning_rate=0.0001)
 vgg19_cb_model = create_vgg19_model()
 vgg19_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/VGG19_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/VGG19_AbsDiff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cb_history = vgg19_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 
 
@@ -400,7 +400,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_wCW_csv_path = '/Dataset/CSV/VGG19_AbsDiff_wCW_misclassified_patches.csv'
+misclass_wCW_csv_path = '/Dataset/New_CSV/VGG19_AbsDiff_wCW_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -481,7 +481,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CW_csv_path  = '/Dataset/CSV/VGG19_AbsDiff_CW_misclassified_patches.csv'    
+misclass_CW_csv_path  = '/Dataset/New_CSV/VGG19_AbsDiff_CW_misclassified_patches.csv'    
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -564,7 +564,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CB_csv_path  = '/Dataset/CSV/VGG19_AbsDiff_CB_misclassified_patches.csv'    
+misclass_CB_csv_path  = '/Dataset/New_CSV/VGG19_AbsDiff_CB_misclassified_patches.csv'    
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -680,7 +680,7 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 
-misclass_En_csv_path = '/Dataset/CSV/Ensemble_VGG19_AbsDiff_misclassified_patches.csv'
+misclass_En_csv_path = '/Dataset/New_CSV/Ensemble_VGG19_AbsDiff_misclassified_patches.csv'
 
 misclassified_indexes = np.where(predicted_classes != true_labels)[0]
 misclassified_data = []
