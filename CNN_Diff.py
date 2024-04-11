@@ -111,7 +111,7 @@ def save_metric_details(model_name, technique, feature_name, test_acc, weighted_
     
         df_existing = pd.read_csv(result_file_path)
         df_new_row = pd.DataFrame({
-            '': [model_name],
+            'Model': [model_name],
             'Technique' : [technique],
             'Feature Map' : [feature_name],
             'Overall Accuracy': [test_acc],
