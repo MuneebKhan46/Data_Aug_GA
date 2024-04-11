@@ -160,6 +160,10 @@ ghost_image = np.stack([fused_image]*3, axis=-1)  # Convert grayscale back to RG
 
 height = fused_image.shape[0]
 width = fused_image.shape[1]
+
+mask_height = height // d
+mask_width = width // d
+
 for y in range((height // d) * d):
     for x in range((width // d) * d):
         if detected_image[min(y // d, mask_height - 1)][min(x // d, mask_width - 1)] == 1:
