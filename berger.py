@@ -145,7 +145,7 @@ fused_image = load_yuv420_image(fused_image_path, 720, 1280)
 blurred_image = cv2.blur(fused_image, (3, 3))
 canny = cv2.Canny(fused_image, 20, 40)
 
-d = 15
+d = 5
 mask = gen_mask(canny, d)
 
 
@@ -155,9 +155,9 @@ count = cv2.countNonZero(detected_image)
 
 print('Number of ghosting patches = {}, {:.2f}%'.format(count, 100 * count / (720 * 1280 / (d * d))))
 
-ghost_image = np.stack([fused_image]*3, axis=-1)  # Convert grayscale back to RGB for visualization
+# ghost_image = np.stack([fused_image]*3, axis=-1)  # Convert grayscale back to RGB for visualization
 
-
+ghost_image = fused_image
 height = fused_image.shape[0]
 width = fused_image.shape[1]
 
@@ -168,11 +168,6 @@ for y in range((height // d) * d):
     for x in range((width // d) * d):
         if detected_image[min(y // d, mask_height - 1)][min(x // d, mask_width - 1)] == 1:
             ghost_image[y, x] = (0, 0, 255)
-
-# for y in range((720 // d) * d):
-#     for x in range((1280 // d) * d):
-#         if detected_image[y // d][x // d] == 1:
-#             ghost_image[y, x] = (0, 0, 255)
 
 
 
