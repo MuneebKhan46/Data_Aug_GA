@@ -6,7 +6,7 @@ import csv
 import cv2
 import textwrap
 import pandas as pd
-
+import resource
 from tensorflow.keras.regularizers import l1
 
 from tensorflow import keras
