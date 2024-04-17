@@ -166,30 +166,238 @@ def augmented_images(data, num_augmented_images_per_original):
             augmented_images.append(augmented_image)
     return augmented_images
 
+def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int, height: int):
+    y_size = width * height
+    patches, patch_numbers = [], []
 
-def create_cnn_model(input_shape=(224,224, 1)):
-    model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3,3), activation='elu', input_shape=input_shape))
-    model.add(Conv2D(32, kernel_size=(3,3), activation='elu'))
+    if not os.path.exists(yuv_file_path):
+        print(f"Warning: File {yuv_file_path} does not exist.")
+        return [], []
 
-    model.add(MaxPooling2D(pool_size=(3,3)))
-    model.add(BatchNormalization())     
-    # model.add(Dropout(0.2))
+    with open(yuv_file_path, 'rb') as f:
+        y_data = f.read(y_size)
 
-    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
-    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+    if len(y_data) != y_size:
+        print(f"Warning: Expected {y_size} bytes, got {len(y_data)} bytes.")
+        return [], []
 
-    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
-    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+    y_channel = np.frombuffer(y_data, dtype=np.uint8).reshape((height, width))
+    patch_number = 0
 
-    model.add(BatchNormalization())
-    # model.add(Dropout(0.35))
+    for i in range(0, height, 224):
+        for j in range(0, width, 224):
+            patch = y_channel[i:i+224, j:j+224]
+            if patch.shape[0] < 224 or patch.shape[1] < 224:
+                patch = np.pad(patch, ((0, 224 - patch.shape[0]), (0, 224 - patch.shape[1])), 'constant')
+            patches.append(patch)
+            patch_numbers.append(patch_number)
+            patch_number += 1
 
-    model.add(Flatten())
-    model.add(Dense(128, activation='elu'))
+    return patches, patch_numbers
 
-    model.add(Dense(2, activation='softmax'))
+
+def load_data_from_csv(csv_path, original_dir, denoised_dir):
+    df = pd.read_csv(csv_path)
+    
+    all_original_patches = []
+    all_denoised_patches = []
+    all_scores = []
+    denoised_image_names = []
+    all_patch_numbers = []
+
+    for _, row in df.iterrows():
+        
+        original_file_name = f"original_{row['original_image_name']}.raw"
+        denoised_file_name = f"denoised_{row['original_image_name']}.raw"
+
+        original_path = os.path.join(original_dir, original_file_name)
+        denoised_path = os.path.join(denoised_dir, denoised_file_name)
+        
+        original_patches, original_patch_numbers = extract_y_channel_from_yuv_with_patch_numbers(original_path, row['width'], row['height'])
+        denoised_patches, denoised_patch_numbers = extract_y_channel_from_yuv_with_patch_numbers(denoised_path, row['width'], row['height'])
+
+        all_original_patches.extend(original_patches)
+        all_denoised_patches.extend(denoised_patches)
+        denoised_image_names.extend([row['original_image_name']] * len(denoised_patches))
+        all_patch_numbers.extend(denoised_patch_numbers) 
+
+
+        scores = np.array([0 if float(score) == 0 else 1 for score in row['patch_score'].split(',')])
+        if len(scores) != len(original_patches) or len(scores) != len(denoised_patches):
+            print(f"Error: Mismatch in number of patches and scores for {row['original_image_name']}")
+            continue
+        all_scores.extend(scores)
+
+    return all_original_patches, all_denoised_patches, all_scores, denoised_image_names, all_patch_numbers
+
+
+def calculate_difference(original, ghosting):
+    return [ghost.astype(np.int16) - orig.astype(np.int16) for orig, ghost in zip(original, ghosting)]
+
+
+def prepare_data(data, labels):
+    data = np.array(data).astype('float32') / 255.0
+    lbl = np.array(labels)
+    return data, lbl
+
+
+def save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path):
+    
+    if path.exists(result_file_path):
+    
+        df_existing = pd.read_csv(result_file_path)
+        df_new_row = pd.DataFrame({
+            'Model': [model_name],
+            'Technique' : [technique],
+            'Feature Map' : [feature_name],
+            'Overall Accuracy': [test_acc],
+            'Precision': [weighted_precision],
+            'Recall': [weighted_recall],
+            'F1-Score': [weighted_f1_score],
+            'Loss': [test_loss],
+            'Non-Ghosting Artifacts Accuracy': [accuracy_0],
+            'Ghosting Artifacts Accuracy': [accuracy_1]
+        })
+        df_metrics = pd.concat([df_existing, df_new_row], ignore_index=True)
+    else:
+    
+        df_metrics = pd.DataFrame({
+            'Model': [model_name],
+            'Technique' : [technique],            
+            'Feature Map' : [feature_name],
+            'Overall Accuracy': [test_acc],
+            'Precision': [weighted_precision],
+            'Recall': [weighted_recall],
+            'F1-Score': [weighted_f1_score],
+            'Loss': [test_loss],
+            'Non-Ghosting Artifacts Accuracy': [accuracy_0],
+            'Ghosting Artifacts Accuracy': [accuracy_1]
+        })
+
+    
+    df_metrics.to_csv(result_file_path, index=False)
+
+
+def augmented_images(data, num_augmented_images_per_original):
+    augmented_images = []
+    
+    data_augmentation = ImageDataGenerator(
+        rotation_range=40,
+        width_shift_range=0.2,
+        height_shift_range=0.2,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True,
+        vertical_flip=True,
+        fill_mode='nearest'
+    )
+
+    for i, patch in enumerate(data):
+        patch = np.expand_dims(patch, axis=0)
+        temp_generator = data_augmentation.flow(patch, batch_size=1)
+        
+        for _ in range(num_augmented_images_per_original):
+            augmented_image = next(temp_generator)[0]  
+            augmented_image = np.squeeze(augmented_image)
+            augmented_images.append(augmented_image)
+    return augmented_images
+
+from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, Activation, Add, MaxPooling2D, GlobalAveragePooling2D, Dropout, Dense
+from tensorflow.keras.models import Model
+
+def create_cnn_model(input_shape=(224, 224, 1)):
+    inputs = Input(shape=input_shape)
+    
+    # First Conv block
+    x = Conv2D(32, kernel_size=(5, 5), padding='same')(inputs)
+    x = Activation('relu')(x)
+    x = Conv2D(32, kernel_size=(5, 5), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(32, kernel_size=(5, 5), padding='same')(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D(pool_size=(3, 3))(x)
+    x = BatchNormalization()(x)
+    x = Dropout(0.2)(x)
+    
+    # Second Conv block with skip connection preparation
+    x_skip = x  # Save this layer for the skip connection
+    x_skip = Conv2D(64, (1, 1), padding='same')(x_skip)  # Adjust x_skip to match x in channels
+    
+    x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = BatchNormalization()(x)
+
+    # Add skip connection
+    x = Add()([x, x_skip])
+
+    # Third Conv block
+    x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D(pool_size=(2, 2))(x)
+    x = BatchNormalization()(x)
+    
+    # Fourth Conv block
+    x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
+    x = Activation('relu')(x)
+    x = MaxPooling2D(pool_size=(2, 2))(x)
+
+    x = GlobalAveragePooling2D()(x)
+    x = BatchNormalization()(x)
+    
+    # Fully connected layers
+    x = Dense(128, activation='relu')(x)
+    x = Dropout(0.5)(x)
+    x = Dense(64, activation='relu')(x)
+    x = Dropout(0.3)(x)
+
+    outputs = Dense(2, activation='softmax')(x)
+    
+    model = Model(inputs=inputs, outputs=outputs)
     return model
+
+
+
+# def create_cnn_model(input_shape=(224,224, 1)):
+#     model = Sequential()
+#     model.add(Conv2D(32, kernel_size=(3,3), activation='elu', input_shape=input_shape))
+#     model.add(Conv2D(32, kernel_size=(3,3), activation='elu'))
+
+#     model.add(MaxPooling2D(pool_size=(3,3)))
+#     model.add(BatchNormalization())     
+#     # model.add(Dropout(0.2))
+
+#     model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+#     model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+
+#     model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+#     model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+
+#     model.add(BatchNormalization())
+#     # model.add(Dropout(0.35))
+
+#     model.add(Flatten())
+#     model.add(Dense(128, activation='elu'))
+
+#     model.add(Dense(2, activation='softmax'))
+#     return model
 
 
 original_patches, denoised_patches, labels, denoised_image_names, all_patch_numbers = load_data_from_csv(csv_path, original_dir, denoised_dir)
