@@ -144,17 +144,17 @@ class SimpleGNN(tf.keras.Model):
         self.conv1 = GCNConv(32, activation='relu')
         self.conv2 = GCNConv(64, activation='relu')
         self.pool = GlobalAvgPool()
-        self.dense1 = layers.Dense(128, activation='relu')
-        self.classifier = layers.Dense(1, activation='sigmoid')
+        self.dense1 = tf.keras.layers.Dense(128, activation='relu')
+        self.classifier = tf.keras.layers.Dense(1, activation='sigmoid')
 
     def call(self, inputs):
-        # Unpack inputs correctly assuming they are provided as in Spektral format
-        x, a, _ = inputs
+        x, a = inputs
         x = self.conv1([x, a])
         x = self.conv2([x, a])
         x = self.pool(x)
         x = self.dense1(x)
         return self.classifier(x)
+
 
 # class SimpleGNN(tf.keras.Model):
 #     def __init__(self):
@@ -244,20 +244,21 @@ model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']
 # Example training loop
 epochs = 10
 for epoch in range(epochs):
-    print(f"Epoch {epoch + 1}/{epochs}")
+    print(f"Epoch {epoch+1}/{epochs}")
     for batch in train_loader:
         inputs, target = batch
-        loss, acc = model.train_on_batch([inputs[0], inputs[1]], target)
+        loss, acc = model.train_on_batch(inputs, target)
         print(f"Training - Loss: {loss}, Accuracy: {acc}")
 
     # Validation loop
     val_loss, val_acc = [], []
     for batch in val_loader:
         inputs, target = batch
-        v_loss, v_acc = model.test_on_batch([inputs[0], inputs[1]], target)
+        v_loss, v_acc = model.test_on_batch(inputs, target)
         val_loss.append(v_loss)
         val_acc.append(v_acc)
     print(f"Validation - Loss: {np.mean(val_loss)}, Accuracy: {np.mean(val_acc)}")
+
 
 
 #########################################################################################################################################################################################################################################################################
