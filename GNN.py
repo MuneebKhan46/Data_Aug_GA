@@ -60,15 +60,37 @@ def load_data_from_csv(csv_path, original_dir, denoised_dir):
 
 #########################################################################################################################################################################################################################################################################
 
+# def image_to_graph(image, grid_size=16):
+#     H, W = image.shape
+#     num_nodes = (H // grid_size) * (W // grid_size)
+#     nodes = np.zeros((num_nodes, grid_size*grid_size))
+#     node_positions = []
+#     edges = []
+#     senders = []
+#     receivers = []
+
+#     index = 0
+#     for y in range(0, H, grid_size):
+#         for x in range(0, W, grid_size):
+#             nodes[index] = image[y:y+grid_size, x:x+grid_size].flatten()
+#             node_positions.append((y // grid_size, x // grid_size))
+#             index += 1
+
+#     for i, pos1 in enumerate(node_positions):
+#         for j, pos2 in enumerate(node_positions):
+#             if i != j and ((abs(pos1[0] - pos2[0]) == 1 and pos1[1] == pos2[1]) or (abs(pos1[1] - pos2[1]) == 1 and pos1[0] == pos2[0])):
+#                 edges.append(1)
+#                 senders.append(i)
+#                 receivers.append(j)
+
+#     return {'nodes': nodes, 'edges': np.array(edges), 'senders': np.array(senders), 'receivers': np.array(receivers)}
+
 def image_to_graph(image, grid_size=16):
     H, W = image.shape
     num_nodes = (H // grid_size) * (W // grid_size)
     nodes = np.zeros((num_nodes, grid_size*grid_size))
     node_positions = []
-    edges = []
-    senders = []
-    receivers = []
-
+    
     index = 0
     for y in range(0, H, grid_size):
         for x in range(0, W, grid_size):
@@ -76,16 +98,16 @@ def image_to_graph(image, grid_size=16):
             node_positions.append((y // grid_size, x // grid_size))
             index += 1
 
+    # Initialize the adjacency matrix with zeros
+    a = np.zeros((num_nodes, num_nodes), dtype=int)
+
+    # Fill the adjacency matrix
     for i, pos1 in enumerate(node_positions):
         for j, pos2 in enumerate(node_positions):
             if i != j and ((abs(pos1[0] - pos2[0]) == 1 and pos1[1] == pos2[1]) or (abs(pos1[1] - pos2[1]) == 1 and pos1[0] == pos2[0])):
-                edges.append(1)
-                senders.append(i)
-                receivers.append(j)
+                a[i, j] = 1  # Assume undirected graph for simplicity
 
-    return {'nodes': nodes, 'edges': np.array(edges), 'senders': np.array(senders), 'receivers': np.array(receivers)}
-
-
+    return {'nodes': nodes, 'a': a}
 #########################################################################################################################################################################################################################################################################
 
 
@@ -124,14 +146,27 @@ class SimpleGNN(tf.keras.Model):
 #########################################################################################################################################################################################################################################################################
 
 
+# class ImageGraphDataset(Dataset):
+#     def __init__(self, data_list, **kwargs):
+#         self.data_list = data_list
+#         super().__init__(**kwargs)
+
+#     def read(self):
+#         return [Graph(x=data['nodes'], a=data['edges'], y=label) for data, label in self.data_list]
+
 class ImageGraphDataset(Dataset):
     def __init__(self, data_list, **kwargs):
         self.data_list = data_list
         super().__init__(**kwargs)
 
     def read(self):
-        return [Graph(x=data['nodes'], a=data['edges'], y=label) for data, label in self.data_list]
-
+        graphs = []
+        for data in self.data_list:
+            x = data['nodes']
+            a = data['a']
+            y = np.array([data['label']], dtype=np.float32)
+            graphs.append(Graph(x=x, a=a, y=y))
+        return graphs
 
 #########################################################################################################################################################################################################################################################################
 #########################################################################################################################################################################################################################################################################
