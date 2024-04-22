@@ -241,23 +241,30 @@ model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy']
 # model.fit(train_loader, validation_data=val_loader, steps_per_epoch=train_loader.steps_per_epoch, validation_steps=val_loader.steps_per_epoch)
 
 
-# Example training loop
 epochs = 10
 for epoch in range(epochs):
     print(f"Epoch {epoch+1}/{epochs}")
     for batch in train_loader:
         inputs, target = batch
-        loss, acc = model.train_on_batch(inputs, target)
+        # Ensure that 'inputs' contains exactly what the model expects
+        x = inputs[0]  # Node features
+        a = inputs[1]  # Adjacency matrix
+
+        # Train the model on the batch
+        loss, acc = model.train_on_batch([x, a], target)  # Pass as list if your model expects two separate arguments
         print(f"Training - Loss: {loss}, Accuracy: {acc}")
 
-    # Validation loop
+    # Repeat similar handling for the validation loop if necessary
     val_loss, val_acc = [], []
     for batch in val_loader:
         inputs, target = batch
-        v_loss, v_acc = model.test_on_batch(inputs, target)
+        x = inputs[0]
+        a = inputs[1]
+        v_loss, v_acc = model.test_on_batch([x, a], target)
         val_loss.append(v_loss)
         val_acc.append(v_acc)
     print(f"Validation - Loss: {np.mean(val_loss)}, Accuracy: {np.mean(val_acc)}")
+
 
 
 
