@@ -138,8 +138,6 @@ def split_data(combined, train_size=0.8, val_size=0.1):
   
 
 #########################################################################################################################################################################################################################################################################
-
-
 class SimpleGNN(tf.keras.Model):
     def __init__(self):
         super().__init__()
@@ -150,12 +148,30 @@ class SimpleGNN(tf.keras.Model):
         self.classifier = layers.Dense(1, activation='sigmoid')
 
     def call(self, inputs):
-        x, a = inputs
+        # Unpack inputs correctly assuming they are provided as in Spektral format
+        x, a, _ = inputs
         x = self.conv1([x, a])
         x = self.conv2([x, a])
         x = self.pool(x)
         x = self.dense1(x)
         return self.classifier(x)
+
+# class SimpleGNN(tf.keras.Model):
+#     def __init__(self):
+#         super().__init__()
+#         self.conv1 = GCNConv(32, activation='relu')
+#         self.conv2 = GCNConv(64, activation='relu')
+#         self.pool = GlobalAvgPool()
+#         self.dense1 = layers.Dense(128, activation='relu')
+#         self.classifier = layers.Dense(1, activation='sigmoid')
+
+#     def call(self, inputs):
+#         x, a = inputs
+#         x = self.conv1([x, a])
+#         x = self.conv2([x, a])
+#         x = self.pool(x)
+#         x = self.dense1(x)
+#         return self.classifier(x)
 
 
 #########################################################################################################################################################################################################################################################################
