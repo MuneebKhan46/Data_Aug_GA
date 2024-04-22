@@ -224,8 +224,11 @@ val_dataset = ImageGraphDataset(val_data)
 test_dataset = ImageGraphDataset(test_data)
 
 # train_loader = DisjointLoader(train_dataset, batch_size=32, epochs=10)
-train_loader = DisjointLoader(train_dataset, batch_size=32)
-val_loader = DisjointLoader(val_dataset, batch_size=32)
+# val_loader = DisjointLoader(val_dataset, batch_size=32)
+
+train_loader = DisjointLoader(train_dataset, batch_size=32, epochs=1, shuffle=True)
+val_loader = DisjointLoader(val_dataset, batch_size=32, epochs=1, shuffle=False)
+
 test_loader = DisjointLoader(test_dataset, batch_size=32)
 
 
@@ -236,21 +239,26 @@ test_loader = DisjointLoader(test_dataset, batch_size=32)
 model = SimpleGNN()
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 # model.fit(train_loader, validation_data=val_loader, steps_per_epoch=train_loader.steps_per_epoch, validation_steps=val_loader.steps_per_epoch)
+
+
+# Example training loop
 epochs = 10
 for epoch in range(epochs):
-    print(f"Epoch {epoch+1}/{epochs}")
+    print(f"Epoch {epoch + 1}/{epochs}")
     for batch in train_loader:
         inputs, target = batch
         loss, acc = model.train_on_batch([inputs[0], inputs[1]], target)
-        print(f"Training loss: {loss}, acc: {acc}")
+        print(f"Training - Loss: {loss}, Accuracy: {acc}")
 
+    # Validation loop
     val_loss, val_acc = [], []
     for batch in val_loader:
         inputs, target = batch
         v_loss, v_acc = model.test_on_batch([inputs[0], inputs[1]], target)
         val_loss.append(v_loss)
         val_acc.append(v_acc)
-    print(f"Validation loss: {np.mean(val_loss)}, acc: {np.mean(val_acc)}")
+    print(f"Validation - Loss: {np.mean(val_loss)}, Accuracy: {np.mean(val_acc)}")
+
 
 #########################################################################################################################################################################################################################################################################
 #########################################################################################################################################################################################################################################################################
