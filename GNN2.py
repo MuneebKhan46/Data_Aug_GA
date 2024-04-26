@@ -72,6 +72,25 @@ def patches_to_graph(patches, labels):
     return Data(x=nodes, edge_index=edge_index, y=labels)
 
 #########################################################################################################################################################################################################################################################################
+
+def load_and_create_graph(csv_path, original_dir, denoised_dir):
+    patches, labels = load_data_from_csv(csv_path, original_dir, denoised_dir)
+    
+    # if not isinstance(patches, torch.Tensor):
+    #     patches = torch.tensor(patches, dtype=torch.float32)  
+    # if not isinstance(labels, torch.Tensor):
+    #     labels = torch.tensor(labels, dtype=torch.long) 
+    
+    print(len(patches))
+    print(len(labels))
+    print(patches.shape)
+    print(labels.shape)
+    print(type(patches))
+    print(type(labels))
+
+    graph_data = patches_to_graph(patches, labels)
+    return graph_data
+
 #########################################################################################################################################################################################################################################################################
 
 if torch.cuda.is_available():
