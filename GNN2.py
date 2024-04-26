@@ -74,6 +74,7 @@ def patches_to_graph(patches, labels):
 #########################################################################################################################################################################################################################################################################
 
 def load_and_create_graph(csv_path, original_dir, denoised_dir):
+    print("fuck")
     patches, labels = load_data_from_csv(csv_path, original_dir, denoised_dir)
     
     # if not isinstance(patches, torch.Tensor):
