@@ -6,7 +6,7 @@ import tensorflow as tf
 import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, global_mean_pool
-from torch_geometric.data import Data
+from torch_geometric.data import DataLoader, Data
 
 
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
@@ -61,27 +61,33 @@ def load_data_from_csv(csv_path, original_dir, denoised_dir):
 
 def patches_to_graph(patches, labels):
     num_nodes = patches.shape[0]
-    nodes = patches.view(num_nodes, -1)  
-    edges = []
-    for i in range(num_nodes):
-        for j in range(i + 1, num_nodes):  
-            if labels[i] == labels[j]:
-                edges.append((i, j))
-                edges.append((j, i))
-    edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
+    nodes = patches.view(num_nodes, -1)
+    
+    # Efficient edge creation using broadcasting
+    label_eq = labels.unsqueeze(0) == labels.unsqueeze(1)
+    connections = label_eq.nonzero(as_tuple=False)
+    # Removing self loops
+    connections = connections[connections[:, 0] != connections[:, 1]]
+    
+    edge_index = connections.t().contiguous()
     return Data(x=nodes, edge_index=edge_index, y=labels)
+    # num_nodes = patches.shape[0]
+    # nodes = patches.view(num_nodes, -1)  
+    # edges = []
+    # for i in range(num_nodes):
+    #     for j in range(i + 1, num_nodes):  
+    #         if labels[i] == labels[j]:
+    #             edges.append((i, j))
+    #             edges.append((j, i))
+    # edge_index = torch.tensor(edges, dtype=torch.long).t().contiguous()
+    # return Data(x=nodes, edge_index=edge_index, y=labels)
 
 #########################################################################################################################################################################################################################################################################
 
 def load_and_create_graph(csv_path, original_dir, denoised_dir):
     print("fuck")
     patches, labels = load_data_from_csv(csv_path, original_dir, denoised_dir)
-    
-    # if not isinstance(patches, torch.Tensor):
-    #     patches = torch.tensor(patches, dtype=torch.float32)  
-    # if not isinstance(labels, torch.Tensor):
-    #     labels = torch.tensor(labels, dtype=torch.long) 
-    
+   
     print(len(patches))
     print(len(labels))
     print(patches.shape)
@@ -122,30 +128,48 @@ class GCN(torch.nn.Module):
 
 #########################################################################################################################################################################################################################################################################
 
+torch.backends.cudnn.benchmark = True  # Enable to optimize CUDA operations
+
 model = GCN().to(device)
-# if torch.cuda.device_count() > 1:
-#     print(f"Using {torch.cuda.device_count()} GPUs!")
-#     model = nn.DataParallel(model)
-# model = model.to(device)
+if torch.cuda.device_count() > 1:
+    print(f"Using {torch.cuda.device_count()} GPUs!")
+    model = nn.DataParallel(model)
+model = model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 criterion = torch.nn.CrossEntropyLoss()
 
-
-def train_model(csv_path, original_dir, denoised_dir):
-  
-  # graph_data = load_and_create_graph(csv_path, original_dir, denoised_dir).to(device)
-  
-  graph_data = load_and_create_graph(csv_path, original_dir, denoised_dir)
-  graph_data = graph_data.to(device)
-  for epoch in range(10):
-    optimizer.zero_grad()
-    output = model(graph_data)
-    loss = criterion(output, graph_data.y)
-    loss.backward()
-    optimizer.step()
-    print(f'Epoch {epoch}: Loss {loss.item()}')
+# def train_model(csv_path, original_dir, denoised_dir):
+#     graph_data = load_and_create_graph(csv_path, original_dir, denoised_dir)
+#     print("fuck2") 
+#     graph_data = graph_data.to(device)
+#     print("fuck3")
+#     for epoch in range(10):
+#         optimizer.zero_grad()
+#         output = model(graph_data)
+#         loss = criterion(output, graph_data.y)
+#         loss.backward()
+#         optimizer.step()
+#         print(f'Epoch {epoch}: Loss {loss.item()}')
       
+# train_model(csv_path, original_dir, denoised_dir)
+
+from torch_geometric.data import DataLoader, Data
+
+# Example: Assuming `load_and_create_graph` returns a list of Data objects
+def train_model(csv_path, original_dir, denoised_dir):
+    dataset = load_and_create_graph(csv_path, original_dir, denoised_dir)
+    print("fuck2")
+    loader = DataLoader(dataset, batch_size=32, shuffle=True)
+    print("fuck2")
+    for epoch in range(10):
+        for graph_data in loader:
+            graph_data = graph_data.to(device)
+            optimizer.zero_grad()
+            output = model(graph_data)
+            loss = criterion(output, graph_data.y)
+            loss.backward()
+            optimizer.step()
+        print(f'Epoch {epoch}: Loss {loss.item()}')
+
 train_model(csv_path, original_dir, denoised_dir)
-
-
