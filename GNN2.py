@@ -103,10 +103,10 @@ class GCN(torch.nn.Module):
 #########################################################################################################################################################################################################################################################################
 
 model = GCN().to(device)
-if torch.cuda.device_count() > 1:
-    print(f"Using {torch.cuda.device_count()} GPUs!")
-    model = nn.DataParallel(model)
-model = model.to(device)
+# if torch.cuda.device_count() > 1:
+#     print(f"Using {torch.cuda.device_count()} GPUs!")
+#     model = nn.DataParallel(model)
+# model = model.to(device)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 criterion = torch.nn.CrossEntropyLoss()
