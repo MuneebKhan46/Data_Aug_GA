@@ -2,7 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-
+import torch.nn as nn  # This import is necessary to use nn.DataParallel
 import torch
 import torch.nn.functional as F
 from torch_geometric.nn import GCNConv, global_mean_pool
