@@ -302,102 +302,102 @@ def augmented_images(data, num_augmented_images_per_original):
             augmented_images.append(augmented_image)
     return augmented_images
 
-from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, Activation, Add, MaxPooling2D, GlobalAveragePooling2D, Dropout, Dense
-from tensorflow.keras.models import Model
+# from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, Activation, Add, MaxPooling2D, GlobalAveragePooling2D, Dropout, Dense
+# from tensorflow.keras.models import Model
 
-def create_cnn_model(input_shape=(224, 224, 1)):
-    inputs = Input(shape=input_shape)
+# def create_cnn_model(input_shape=(224, 224, 1)):
+#     inputs = Input(shape=input_shape)
     
-    # First Conv block
-    x = Conv2D(32, kernel_size=(5, 5), padding='same')(inputs)
-    x = Activation('relu')(x)
-    x = Conv2D(32, kernel_size=(5, 5), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(32, kernel_size=(5, 5), padding='same')(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D(pool_size=(3, 3))(x)
-    x = BatchNormalization()(x)
-    x = Dropout(0.2)(x)
+#     # First Conv block
+#     x = Conv2D(32, kernel_size=(5, 5), padding='same')(inputs)
+#     x = Activation('relu')(x)
+#     x = Conv2D(32, kernel_size=(5, 5), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(32, kernel_size=(5, 5), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = MaxPooling2D(pool_size=(3, 3))(x)
+#     x = BatchNormalization()(x)
+#     x = Dropout(0.2)(x)
     
-    # Second Conv block with skip connection preparation
-    x_skip = x  # Save this layer for the skip connection
-    x_skip = Conv2D(64, (1, 1), padding='same')(x_skip)  # Adjust x_skip to match x in channels
+#     # Second Conv block with skip connection preparation
+#     x_skip = x  # Save this layer for the skip connection
+#     x_skip = Conv2D(64, (1, 1), padding='same')(x_skip)  # Adjust x_skip to match x in channels
     
-    x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = BatchNormalization()(x)
+#     x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(64, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = BatchNormalization()(x)
 
-    # Add skip connection
-    x = Add()([x, x_skip])
+#     # Add skip connection
+#     x = Add()([x, x_skip])
 
-    # Third Conv block
-    x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
-    x = BatchNormalization()(x)
+#     # Third Conv block
+#     x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(128, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = MaxPooling2D(pool_size=(2, 2))(x)
+#     x = BatchNormalization()(x)
     
-    # Fourth Conv block
-    x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
-    x = Activation('relu')(x)
-    x = MaxPooling2D(pool_size=(2, 2))(x)
+#     # Fourth Conv block
+#     x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = Conv2D(256, kernel_size=(3, 3), padding='same')(x)
+#     x = Activation('relu')(x)
+#     x = MaxPooling2D(pool_size=(2, 2))(x)
 
-    x = GlobalAveragePooling2D()(x)
-    x = BatchNormalization()(x)
+#     x = GlobalAveragePooling2D()(x)
+#     x = BatchNormalization()(x)
     
-    # Fully connected layers
-    x = Dense(128, activation='relu')(x)
-    x = Dropout(0.5)(x)
-    x = Dense(64, activation='relu')(x)
-    x = Dropout(0.3)(x)
+#     # Fully connected layers
+#     x = Dense(128, activation='relu')(x)
+#     x = Dropout(0.5)(x)
+#     x = Dense(64, activation='relu')(x)
+#     x = Dropout(0.3)(x)
 
-    outputs = Dense(2, activation='softmax')(x)
+#     outputs = Dense(2, activation='softmax')(x)
     
-    model = Model(inputs=inputs, outputs=outputs)
+#     model = Model(inputs=inputs, outputs=outputs)
+    # return model
+
+
+
+def create_cnn_model(input_shape=(224,224, 1)):
+    model = Sequential()
+    model.add(Conv2D(32, kernel_size=(3,3), activation='elu', input_shape=input_shape))
+    model.add(Conv2D(32, kernel_size=(3,3), activation='elu'))
+
+    model.add(MaxPooling2D(pool_size=(3,3)))
+    model.add(BatchNormalization())     
+    # model.add(Dropout(0.2))
+
+    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+
+    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+
+    model.add(BatchNormalization())
+    # model.add(Dropout(0.35))
+
+    model.add(Flatten())
+    model.add(Dense(128, activation='elu'))
+
+    model.add(Dense(2, activation='softmax'))
     return model
-
-
-
-# def create_cnn_model(input_shape=(224,224, 1)):
-#     model = Sequential()
-#     model.add(Conv2D(32, kernel_size=(3,3), activation='elu', input_shape=input_shape))
-#     model.add(Conv2D(32, kernel_size=(3,3), activation='elu'))
-
-#     model.add(MaxPooling2D(pool_size=(3,3)))
-#     model.add(BatchNormalization())     
-#     # model.add(Dropout(0.2))
-
-#     model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
-#     model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
-
-#     model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
-#     model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
-
-#     model.add(BatchNormalization())
-#     # model.add(Dropout(0.35))
-
-#     model.add(Flatten())
-#     model.add(Dense(128, activation='elu'))
-
-#     model.add(Dense(2, activation='softmax'))
-#     return model
 
 
 original_patches, denoised_patches, labels, denoised_image_names, all_patch_numbers = load_data_from_csv(csv_path, original_dir, denoised_dir)
@@ -488,7 +488,7 @@ opt = Adam(learning_rate=0.0001)
 cnn_wcw_model = create_cnn_model()
 cnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
-wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/new_Model/CNN_Diff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/CNN_Diff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
 memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
 print("%5.1f MByte" % memMb_vgg19)
@@ -512,7 +512,7 @@ cnn_cw_model = create_cnn_model()
 cnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/CNN_Diff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_Diff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
 memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
 print("%5.1f MByte" % memMb_vgg19)
@@ -557,7 +557,7 @@ cnn_cb_model = create_cnn_model()
 cnn_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/new_Model/CNN_Diff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/CNN_Diff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
 cb_history = cnn_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
 memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
 print("%5.1f MByte" % memMb_vgg19)
@@ -582,7 +582,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_wCW_csv_path = '/Dataset/New_CSV/CNN_Diff_wCW_misclassified_patches.csv'
+misclass_wCW_csv_path = '/Dataset/CSV/CNN_Diff_wCW_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -662,7 +662,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CW_csv_path  = '/Dataset/New_CSV/CNN_Diff_CW_misclassified_patches.csv'    
+misclass_CW_csv_path  = '/Dataset/CSV/CNN_Diff_CW_misclassified_patches.csv'    
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -744,7 +744,7 @@ true_labels = np.argmax(test_labels, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CB_csv_path  = '/Dataset/New_CSV/CNN_Diff_CB_misclassified_patches.csv'    
+misclass_CB_csv_path  = '/Dataset/CSV/CNN_Diff_CB_misclassified_patches.csv'    
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
 
@@ -859,7 +859,7 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 
-misclass_En_csv_path = '/Dataset/New_CSV/Ensemble_CNN_Diff_misclassified_patches.csv'
+misclass_En_csv_path = '/Dataset/CSV/Ensemble_CNN_Diff_misclassified_patches.csv'
 
 misclassified_indexes = np.where(predicted_classes != true_labels)[0]
 misclassified_data = []
