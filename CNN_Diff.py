@@ -28,7 +28,7 @@ class_1_accuracies = []
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
 csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified2.csv'
-result_file_path = "/Dataset/Results/New_Overall_results.csv"
+result_file_path = "/Dataset/Results/Overall_results.csv"
 
 def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int, height: int):
     y_size = width * height
@@ -377,24 +377,24 @@ def augmented_images(data, num_augmented_images_per_original):
 
 def create_cnn_model(input_shape=(224,224, 1)):
     model = Sequential()
-    model.add(Conv2D(32, kernel_size=(3,3), activation='relu', input_shape=input_shape))
-    model.add(Conv2D(32, kernel_size=(3,3), activation='relu'))
+    model.add(Conv2D(32, kernel_size=(3,3), activation='elu', input_shape=input_shape))
+    model.add(Conv2D(32, kernel_size=(3,3), activation='elu'))
 
     model.add(MaxPooling2D(pool_size=(3,3)))
     model.add(BatchNormalization())     
     # model.add(Dropout(0.2))
 
-    model.add(Conv2D(64, kernel_size=(3,3), activation='relu'))
-    model.add(Conv2D(64, kernel_size=(3,3), activation='relu'))
+    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
+    model.add(Conv2D(64, kernel_size=(3,3), activation='elu'))
 
-    model.add(Conv2D(128, kernel_size=(3,3), activation='relu'))
-    model.add(Conv2D(128, kernel_size=(3,3), activation='relu'))
+    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
+    model.add(Conv2D(128, kernel_size=(3,3), activation='elu'))
 
     model.add(BatchNormalization())
     # model.add(Dropout(0.35))
 
     model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(128, activation='elu'))
 
     model.add(Dense(2, activation='softmax'))
     return model
