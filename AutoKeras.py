@@ -215,7 +215,7 @@ print(f"y_Test Shape: {y_test.shape}")
 strategy = tf.distribute.MirroredStrategy()
 
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-checkpoint_path = "best_model_autokeras.h5"
+checkpoint_path = "/Dataset/Auto_Keras_Model/best_model_autokeras.keras"
 model_checkpoint = ModelCheckpoint(checkpoint_path, save_best_only=True, monitor='val_accuracy', mode='max')
 
 # Use the strategy scope to define and compile the model
