@@ -244,7 +244,7 @@ with strategy.scope():
     print(f"Test Accuracy#1: {accuracy}")
     print(f"Test Loss#1: {loss}")
 
-    loss, accuracy = best_trained_model.evaluate(test_patches,, test_labels)
+    loss, accuracy = best_trained_model.evaluate(test_patches, test_labels)
     print(f"Test accuracy#2: {accuracy}")
     print(f"Test Loss#2: {loss}")
 
