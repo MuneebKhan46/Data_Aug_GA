@@ -1,6 +1,6 @@
 import os
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+# os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 
 import numpy as np
@@ -187,28 +187,63 @@ print(f"y_Train Shape: {y_train.shape}")
 print(f"X_Test Shape: {X_test.shape}")
 print(f"y_Test Shape: {y_test.shape}")
 
-# Implement NAS using AutoKeras
-clf = ak.ImageClassifier(
-    overwrite=True,
-    max_trials=10,
-    objective='val_accuracy'
-)
+# # Implement NAS using AutoKeras
+# clf = ak.ImageClassifier(
+#     overwrite=True,
+#     max_trials=,
+#     objective='val_accuracy'
+# )
 
-# Train the model
-clf.fit(X_train, y_train, epochs=2, validation_data=(X_test, y_test))
+# # Train the model
+# clf.fit(X_train, y_train, epochs=2, validation_data=(X_test, y_test))
 
-# Evaluate the model
-loss, accuracy = clf.evaluate(X_test, y_test)
-print(f"Test accuracy: {accuracy}")
+# # Evaluate the model
+# loss, accuracy = clf.evaluate(test_patches, test_labels)
+# print(f"Test accuracy: {accuracy}")
 
-# Predict on new data
-predicted_y = clf.predict(X_test)
+# # Predict on new data
+# predicted_y = clf.predict(test_patches)
 
-# Retrieve the best model
-best_model = clf.export_model()
+# # Retrieve the best model
+# best_model = clf.export_model()
 
-# Save the best model
-# best_model.save("best_model_autokeras")
+# # Save the best model
+# # best_model.save("best_model_autokeras")
+
+# # Summary of the best model
+# best_model.summary()
+strategy = tf.distribute.MirroredStrategy()
+
+early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+checkpoint_path = "best_model_autokeras.h5"
+model_checkpoint = ModelCheckpoint(checkpoint_path, save_best_only=True, monitor='val_accuracy', mode='max')
+
+# Use the strategy scope to define and compile the model
+with strategy.scope():
+    # Implement NAS using AutoKeras
+    clf = ak.ImageClassifier(
+        overwrite=True,
+        max_trials=2,  # Adjust the number of trials based on your needs
+        objective='val_accuracy'
+    )
+
+    # Train the model with callbacks
+    clf.fit(
+        X_train, y_train, 
+        epochs=50,  # Increased epochs to allow early stopping to trigger
+        validation_data=(X_val, y_val), 
+        callbacks=[early_stopping, model_checkpoint]
+    )
+
+    # Load the best model
+    best_model = tf.keras.models.load_model(checkpoint_path)
+
+    # Evaluate the model
+    loss, accuracy = best_model.evaluate(test_patches, test_labels)
+    print(f"Test accuracy: {accuracy}")
+
+    # Predict on new data
+    predicted_y = best_model.predict(test_patches)
 
 # Summary of the best model
 best_model.summary()
