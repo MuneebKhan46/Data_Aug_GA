@@ -220,10 +220,9 @@ model_checkpoint = ModelCheckpoint(checkpoint_path, save_best_only=True, monitor
 
 # Use the strategy scope to define and compile the model
 with strategy.scope():
-    # Implement NAS using AutoKeras
     clf = ak.ImageClassifier(
         overwrite=True,
-        max_trials=2,  # Adjust the number of trials based on your needs
+        max_trials=20,  # Adjust the number of trials based on your needs
         objective='val_accuracy'
     )
 
@@ -235,15 +234,27 @@ with strategy.scope():
         callbacks=[early_stopping, model_checkpoint]
     )
 
-    # Load the best model
-    best_model = tf.keras.models.load_model(checkpoint_path)
-
-    # Evaluate the model
+    best_model = clf.export_model()
+    best_model.save("/Dataset/Auto_Keras_Model/FinalModel.keras")
+    
+    best_trained_model = tf.keras.models.load_model(checkpoint_path)
+    
+    
     loss, accuracy = best_model.evaluate(test_patches, test_labels)
-    print(f"Test accuracy: {accuracy}")
+    print(f"Test Accuracy#1: {accuracy}")
+    print(f"Test Loss#1: {loss}")
 
-    # Predict on new data
+    loss, accuracy = best_trained_model.evaluate(test_patches,, test_labels)
+    print(f"Test accuracy#2: {accuracy}")
+    print(f"Test Loss#2: {loss}")
+
+    
     predicted_y = best_model.predict(test_patches)
+    
+    best_predicted_y = best_trained_model.predict(test_patches)
 
-# Summary of the best model
+
 best_model.summary()
+
+
+best_trained_model.summary()
