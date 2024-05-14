@@ -10,7 +10,7 @@ import autokeras as ak
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle as sklearn_shuffle
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
-
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
 models = []
 class_1_accuracies = []
 
