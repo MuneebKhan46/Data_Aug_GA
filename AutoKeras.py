@@ -231,7 +231,7 @@ with strategy.scope():
     clf.fit(
         X_train, y_train, 
         epochs=50,  # Increased epochs to allow early stopping to trigger
-        validation_data=(X_val, y_val), 
+        validation_data=(X_test, y_test), 
         callbacks=[early_stopping, model_checkpoint]
     )
 
