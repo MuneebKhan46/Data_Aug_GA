@@ -175,8 +175,8 @@ print(f" Total Augmented GA: {len(aghosting_patches)}")
 
 X_train, X_test, y_train, y_test = train_test_split(train_patches_combined, train_labels_combined, test_size=0.15, random_state=42)
 
-y_train = tf.keras.utils.to_categorical(y_train, 2)
-y_test = tf.keras.utils.to_categorical(y_test, 2)
+# y_train = tf.keras.utils.to_categorical(y_train, 2)
+# y_test = tf.keras.utils.to_categorical(y_test, 2)
 
 print(f"X_Train Shape: {X_train.shape}")
 print(f"y_Train Shape: {y_train.shape}")
