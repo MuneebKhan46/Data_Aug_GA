@@ -174,23 +174,21 @@ def augmented_images(data, num_augmented_images_per_original):
 
 
 
-def create_cnn_model(input_shape=(224,224, 1)):
-
-    input_layer = Input(shape=(224, 224, 1), name='input_layer')
+def create_cnn_model(input_shape=(224, 224, 1)):
+    input_layer = Input(shape=input_shape, name='input_layer')
     
     x = tf.cast(input_layer, tf.float32, name='cast_to_float32')
     normalization = Rescaling(scale=1./255, name='normalization')(x)
     random_translation = RandomTranslation(height_factor=0.1, width_factor=0.1, fill_mode='nearest', name='random_translation')(normalization)
-
-    random_flip = RandomFlip(mode='horizontal_and_vertical', name='random_flip')(random_translation)
+    random_flip = RandomFlip(mode='horizontal', name='random_flip')(random_translation)
     concatenate = Concatenate(name='concatenate')([random_flip, random_flip, random_flip])
+    
     efficientnetb7 = EfficientNetB7(include_top=False, weights='imagenet', input_tensor=concatenate)
-
     global_average_pooling2d = GlobalAveragePooling2D(name='global_average_pooling2d')(efficientnetb7.output)
-    dense = Dense(1, activation='linear', name='dense')(global_average_pooling2d)
-
-
-    classification_head_1 = Activation('sigmoid', name='classification_head_1')(dense)
+    
+    dense = Dense(128, activation='relu', name='dense')(global_average_pooling2d)
+    classification_head_1 = Dense(2, activation='softmax', name='classification_head_1')(dense)
+    
     model = Model(inputs=input_layer, outputs=classification_head_1)
     return model
 
