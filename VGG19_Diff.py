@@ -26,7 +26,7 @@ class_1_accuracies = []
 
 original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
-csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified.csv'
+csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified3.csv'
 result_file_path = "/Dataset/Results/Overall_results.csv"
 
 def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int, height: int):
