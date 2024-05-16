@@ -756,7 +756,7 @@ save_metric_details(model_name, technique, feature_name, test_acc, weighted_prec
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
-misclass_En_csv_path = '/Dataset/CSV/Precision_Ensemble_MobileNet_Diff_misclassified_patches.csv'
+misclass_En_csv_path = '/Dataset/CSV/Precision_Ensemble_MobileNet_AbsDiff_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_classes != true_labels)[0]
 
 misclassified_data = []
@@ -844,7 +844,7 @@ save_metric_details(model_name, technique, feature_name, test_acc, weighted_prec
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
-misclass_En_csv_path = '/Dataset/CSV/Average_Ensemble_MobileNet_Diff_misclassified_patches.csv'
+misclass_En_csv_path = '/Dataset/CSV/Average_Ensemble_MobileNet_AbsDiff_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_classes != true_labels)[0]
 
 misclassified_data = []
