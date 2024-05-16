@@ -287,15 +287,15 @@ print(f"y_Test Shape: {y_test.shape}")
 
 # # Without Class Weight
 
-# opt = Adam(learning_rate=2e-05)
-# cnn_wcw_model = create_cnn_model()
-# cnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+opt = Adam(learning_rate=2e-05)
+cnn_wcw_model = create_cnn_model()
+cnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-# wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/New_CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-# wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_val, y_val), callbacks=[wcw_model_checkpoint])
-# # memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
-# # print("%5.1f MByte" % memMb_vgg19)
+wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/New_CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_val, y_val), callbacks=[wcw_model_checkpoint])
+# memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+# print("%5.1f MByte" % memMb_vgg19)
 
 
 # # With Class Weight
@@ -312,15 +312,14 @@ class_weight = {0: weight_for_0, 1: weight_for_1}
 print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
 print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
-# opt = Adam(learning_rate=2e-05)
-# cnn_cw_model = create_cnn_model()
-# cnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+opt = Adam(learning_rate=2e-05)
+cnn_cw_model = create_cnn_model()
+cnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
-
-# cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/New_CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-# cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_val, y_val), callbacks=[cw_model_checkpoint])
-# # memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
-# # print("%5.1f MByte" % memMb_vgg19)
+cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/New_CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_val, y_val), callbacks=[cw_model_checkpoint])
+# memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+# print("%5.1f MByte" % memMb_vgg19)
 
 
 # With Class Balance
