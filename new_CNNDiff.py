@@ -23,8 +23,8 @@ from keras.callbacks import ModelCheckpoint
 
 from sklearn.utils import shuffle as sklearn_shuffle
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, log_loss
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report, accuracy_score
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, log_loss, precision_recall_curve
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 
 
 models = []
@@ -398,6 +398,25 @@ predictions = cnn_wcw_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(y_test, axis=-1)
 
+
+precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
+
+plt.figure()
+plt.plot(recall, precision, marker='.')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.grid(True)
+precision_recall_curve_path = '/Dataset/Plots/CNN_Diff_wCW_precision_recall_curve.png'
+
+if not os.path.exists(os.path.dirname(precision_recall_curve_path)):
+    os.makedirs(os.path.dirname(precision_recall_curve_path))
+
+plt.savefig(precision_recall_curve_path, dpi=300)
+plt.close()
+
+
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
 conf_matrix = confusion_matrix(true_labels, predicted_labels)
@@ -454,6 +473,24 @@ test_acc  = test_acc *100
 predictions = cnn_cw_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(y_test, axis=-1)
+
+precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
+
+plt.figure()
+plt.plot(recall, precision, marker='.')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.grid(True)
+precision_recall_curve_path = '/Dataset/Plots/CNN_Diff_CW_precision_recall_curve.png'
+
+if not os.path.exists(os.path.dirname(precision_recall_curve_path)):
+    os.makedirs(os.path.dirname(precision_recall_curve_path))
+
+plt.savefig(precision_recall_curve_path, dpi=300)
+plt.close()
+
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
@@ -514,6 +551,25 @@ predictions = cnn_cb_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(y_test, axis=-1)
 
+
+precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
+
+plt.figure()
+plt.plot(recall, precision, marker='.')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.grid(True)
+precision_recall_curve_path = '/Dataset/Plots/CNN_Diff_CB_precision_recall_curve.png'
+
+if not os.path.exists(os.path.dirname(precision_recall_curve_path)):
+    os.makedirs(os.path.dirname(precision_recall_curve_path))
+
+plt.savefig(precision_recall_curve_path, dpi=300)
+plt.close()
+
+
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
 conf_matrix = confusion_matrix(true_labels, predicted_labels)
@@ -556,6 +612,8 @@ feature_name = "Difference Map"
 technique = "Class Balance"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
+
+
 
 
 class_1_precision = report['Ghosting Artifact']['precision']
