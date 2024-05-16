@@ -456,7 +456,7 @@ technique = "Without Class Weight"
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
-class_1_precision = report['Ghosting Artifact']['precision']
+class_1_precision = report['Ghosting Artifact']['f1-score']
 models.append(cnn_wcw_model)
 class_1_accuracies.append(class_1_precision)
 
@@ -532,7 +532,7 @@ save_metric_details(model_name, technique, feature_name, test_acc, weighted_prec
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
-class_1_precision = report['Ghosting Artifact']['precision']
+class_1_precision = report['Ghosting Artifact']['f1-score']
 models.append(cnn_cw_model)
 class_1_accuracies.append(class_1_precision)
 
@@ -613,7 +613,7 @@ print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={
 
 
 
-class_1_precision = report['Ghosting Artifact']['precision']
+class_1_precision = report['Ghosting Artifact']['f1-score']
 models.append(cnn_cw_model)
 class_1_accuracies.append(class_1_precision)
 
