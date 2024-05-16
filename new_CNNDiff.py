@@ -300,17 +300,17 @@ print(f"y_Test Shape: {y_test.shape}")
 
 # # With Class Weight
 
-# ng = len(train_patches[train_labels == 0])
-# ga =  len(train_patches[train_labels == 1])
-# total = ng + ga
+ng = len(train_patches[train_labels == 0])
+ga =  len(train_patches[train_labels == 1])
+total = ng + ga
 
-# imbalance_ratio = ng / ga  
-# weight_for_0 = (1 / ng) * (total / 2.0)
-# weight_for_1 = (1 / ga) * (total / 2.0)
-# class_weight = {0: weight_for_0, 1: weight_for_1}
+imbalance_ratio = ng / ga  
+weight_for_0 = (1 / ng) * (total / 2.0)
+weight_for_1 = (1 / ga) * (total / 2.0)
+class_weight = {0: weight_for_0, 1: weight_for_1}
 
-# print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
-# print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
+print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
+print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
 # opt = Adam(learning_rate=2e-05)
 # cnn_cw_model = create_cnn_model()
