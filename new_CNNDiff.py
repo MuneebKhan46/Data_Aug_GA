@@ -268,6 +268,8 @@ X_train, X_temp, y_train, y_temp = train_test_split(train_patches_combined, trai
 
 X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
+CX_train = X_train
+Cy_train = y_train
 y_train = keras.utils.to_categorical(y_train, 2)
 y_val = keras.utils.to_categorical(y_val, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
@@ -283,47 +285,47 @@ print(f"y_Test Shape: {y_test.shape}")
 
 
 
-# Without Class Weight
+# # Without Class Weight
 
-opt = Adam(learning_rate=2e-05)
-cnn_wcw_model = create_cnn_model()
-cnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
-
-
-wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/New_CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_val, y_val), callbacks=[wcw_model_checkpoint])
-# memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
-# print("%5.1f MByte" % memMb_vgg19)
+# opt = Adam(learning_rate=2e-05)
+# cnn_wcw_model = create_cnn_model()
+# cnn_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
-# With Class Weight
-
-ng = len(train_patches[train_labels == 0])
-ga =  len(train_patches[train_labels == 1])
-total = ng + ga
-
-imbalance_ratio = ng / ga  
-weight_for_0 = (1 / ng) * (total / 2.0)
-weight_for_1 = (1 / ga) * (total / 2.0)
-class_weight = {0: weight_for_0, 1: weight_for_1}
-
-print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
-print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
-
-opt = Adam(learning_rate=2e-05)
-cnn_cw_model = create_cnn_model()
-cnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+# wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/New_CNN_AbsDiff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+# wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_val, y_val), callbacks=[wcw_model_checkpoint])
+# # memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+# # print("%5.1f MByte" % memMb_vgg19)
 
 
-cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/New_CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_val, y_val), callbacks=[cw_model_checkpoint])
-# memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
-# print("%5.1f MByte" % memMb_vgg19)
+# # With Class Weight
+
+# ng = len(train_patches[train_labels == 0])
+# ga =  len(train_patches[train_labels == 1])
+# total = ng + ga
+
+# imbalance_ratio = ng / ga  
+# weight_for_0 = (1 / ng) * (total / 2.0)
+# weight_for_1 = (1 / ga) * (total / 2.0)
+# class_weight = {0: weight_for_0, 1: weight_for_1}
+
+# print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
+# print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
+
+# opt = Adam(learning_rate=2e-05)
+# cnn_cw_model = create_cnn_model()
+# cnn_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
+
+
+# cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/New_CNN_AbsDiff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
+# cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_val, y_val), callbacks=[cw_model_checkpoint])
+# # memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
+# # print("%5.1f MByte" % memMb_vgg19)
 
 
 # With Class Balance
  
-combined = list(zip(X_train, y_train))
+combined = list(zip(CX_train, Cy_train))
 combined = sklearn_shuffle(combined)
 
 ghosting_artifacts = [item for item in combined if item[1] == 1]
