@@ -188,16 +188,16 @@ from tensorflow.keras.optimizers import Adam
 def create_cnn_model(input_shape=(224, 224, 1)):
     input_layer = Input(shape=input_shape, name='input_layer')
     
-    normalization = Rescaling(scale=1./255, name='normalization')(input_layer)
-    random_translation = RandomTranslation(height_factor=0.1, width_factor=0.1, fill_mode='nearest', name='random_translation')(normalization)
-    random_flip = RandomFlip(mode='horizontal_and_vertical', name='random_flip')(random_translation)
-    concatenate = Concatenate(name='concatenate')([random_flip, random_flip, random_flip])
+    normalization = Rescaling(scale=1./255, name='normalization_layer')(input_layer)
+    random_translation = RandomTranslation(height_factor=0.1, width_factor=0.1, fill_mode='nearest', name='random_translation_layer')(normalization)
+    random_flip = RandomFlip(mode='horizontal_and_vertical', name='random_flip_layer')(random_translation)
+    concatenate = Concatenate(name='concatenate_layer')([random_flip, random_flip, random_flip])
     
     efficientnetb7 = EfficientNetB7(include_top=False, weights='imagenet', input_tensor=concatenate)
-    global_average_pooling2d = GlobalAveragePooling2D(name='global_average_pooling2d')(efficientnetb7.output)
+    global_average_pooling2d = GlobalAveragePooling2D(name='global_average_pooling2d_layer')(efficientnetb7.output)
     
-    dense = Dense(128, activation='elu', name='dense')(global_average_pooling2d)
-    classification_head_1 = Dense(2, activation='softmax', name='classification_head_1')(dense)
+    dense = Dense(128, activation='elu', name='dense_layer')(global_average_pooling2d)
+    classification_head_1 = Dense(2, activation='softmax', name='classification_head_1_layer')(dense)
     
     model = Model(inputs=input_layer, outputs=classification_head_1)
     return model
