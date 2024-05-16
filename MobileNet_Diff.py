@@ -105,7 +105,7 @@ def load_data_from_csv(csv_path, original_dir, denoised_dir):
 ##########################################################################################################################################################################
 
 def calculate_difference(original, ghosting):
-    return [np.abs(ghost.astype(np.int16) - orig.astype(np.int16)).astype(np.uint8) for orig, ghost in zip(original, ghosting)]
+    return [ghost.astype(np.int16) - orig.astype(np.int16).astype(np.uint8) for orig, ghost in zip(original, ghosting)]
 
 
 ##########################################################################################################################################################################
