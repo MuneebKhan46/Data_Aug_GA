@@ -264,17 +264,24 @@ print(f" Total Augmented Patches: {len(train_patches_combined)}")
 aghosting_patches = train_patches_combined[train_labels_combined == 1]
 print(f" Total Augmented GA: {len(aghosting_patches)}")
 
-X_train, X_test, y_train, y_test = train_test_split(train_patches_combined, train_labels_combined, test_size=0.15, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(train_patches_combined, train_labels_combined, test_size=0.2, random_state=42)
+
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
 
 y_train = keras.utils.to_categorical(y_train, 2)
+y_val = keras.utils.to_categorical(y_val, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
 
 print(f"X_Train Shape: {X_train.shape}")
 print(f"y_Train Shape: {y_train.shape}")
+
+print(f"X_Val Shape: {X_val.shape}")
+print(f"y_Val Shape: {y_val.shape}")
+
 print(f"X_Test Shape: {X_test.shape}")
 print(f"y_Test Shape: {y_test.shape}")
 
-
+ 
 # Without Class Weight
 
 
@@ -283,7 +290,7 @@ cnn_wcw_model.compile(optimizer=Adam(learning_rate=2e-05), loss='categorical_cro
 
 
 wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/AKeras_Diff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
+wcw_history = cnn_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_val, y_val), callbacks=[wcw_model_checkpoint])
 memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
 # print("%5.1f MByte" % memMb_vgg19)
 
@@ -301,19 +308,18 @@ class_weight = {0: weight_for_0, 1: weight_for_1}
 print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
 print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
-opt = Adam(learning_rate=0.0001)
 cnn_cw_model = create_cnn_model()
 cnn_cw_model.compile(optimizer=Adam(learning_rate=2e-05), loss='categorical_crossentropy', metrics=['accuracy'])
 
 
 cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/AKeras_Diff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
+cw_history = cnn_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_val, y_val), callbacks=[cw_model_checkpoint])
 memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
 # print("%5.1f MByte" % memMb_vgg19)
 
 # With Class Balance
  
-combined = list(zip(train_patches_combined, train_labels_combined))
+combined = list(zip(X_train, y_train))
 combined = sklearn_shuffle(combined)
 
 ghosting_artifacts = [item for item in combined if item[1] == 1]
@@ -333,46 +339,45 @@ print(f"Class balance train size {len(cb_train_dataset)}")
 
 cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
 
-cb_train_patches, cb_test_patches, cb_train_labels, cb_test_labels = train_test_split(cb_train_patches, cb_train_labels, test_size=0.20, random_state=42)
+# cb_train_patches, cb_test_patches, cb_train_labels, cb_test_labels = train_test_split(cb_train_patches, cb_train_labels, test_size=0.20, random_state=42)
 
 cb_train_patches = np.array(cb_train_patches)
 cb_train_labels = np.array(cb_train_labels)
-cb_test_patches = np.array(cb_test_patches)
-cb_test_labels = np.array(cb_test_labels)
+# cb_test_patches = np.array(cb_test_patches)
+# cb_test_labels = np.array(cb_test_labels)
 
 print(f"Train size {len(cb_train_patches)}")
-print(f"Test size {len(cb_test_patches)}")
+# print(f"Test size {len(cb_test_patches)}")
 
 cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
-cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
+# cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 
-opt = Adam(learning_rate=0.0001)
 cnn_cb_model = create_cnn_model()
 cnn_cb_model.compile(optimizer=Adam(learning_rate=2e-05), loss='categorical_crossentropy', metrics=['accuracy'])
 
 
 cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/AKeras_Diff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cb_history = cnn_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
+cb_history = cnn_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(X_val, y_val), callbacks=[cb_model_checkpoint])
 memMb_vgg19 =resource.getrusage(resource.RUSAGE_SELF).ru_maxrss/1024.0/1024.0
 # print("%5.1f MByte" % memMb_vgg19)
 
 # Testing
 
-test_patches = np.array(test_patches)
-test_patches = test_patches.reshape((-1, 224, 224, 1))  # Reshape to include the channel dimension
+X_test = np.array(X_test)
+X_test = X_test.reshape((-1, 224, 224, 1))  # Reshape to include the channel dimension
 
-test_labels = np.array(test_labels)
-test_labels = keras.utils.to_categorical(test_labels, 2)
+# y_test = np.array(y_test)
+# y_test = keras.utils.to_categorical(y_test, 2)
 
 
 ## Without Class Weight
 
-test_loss, test_acc = cnn_wcw_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = cnn_wcw_model.evaluate(X_test, y_test)
 test_acc  = test_acc *100
 
-predictions = cnn_wcw_model.predict(test_patches)
+predictions = cnn_wcw_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
-true_labels = np.argmax(test_labels, axis=-1)
+true_labels = np.argmax(y_test, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
@@ -447,12 +452,12 @@ class_1_accuracies.append(class_1_precision)
 
 ## With Class Weight
 
-test_loss, test_acc = cnn_cw_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = cnn_cw_model.evaluate(X_test, y_test)
 test_acc  = test_acc *100
 
-predictions = cnn_cw_model.predict(test_patches)
+predictions = cnn_cw_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
-true_labels = np.argmax(test_labels, axis=-1)
+true_labels = np.argmax(y_test, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
@@ -529,12 +534,12 @@ class_1_accuracies.append(class_1_precision)
 
 ## With Class Balance
 
-test_loss, test_acc = cnn_cb_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = cnn_cb_model.evaluate(X_test, y_test)
 test_acc  = test_acc *100
 
-predictions = cnn_cb_model.predict(test_patches)
+predictions = cnn_cb_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
-true_labels = np.argmax(test_labels, axis=-1)
+true_labels = np.argmax(y_test, axis=-1)
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
@@ -613,6 +618,12 @@ class_1_accuracies.append(class_1_precision)
 ## ENSEMBLE 
 
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support, log_loss
+
+test_patches = np.array(test_patches)
+test_patches = test_patches.reshape((-1, 224, 224, 1))  # Reshape to include the channel dimension
+
+test_labels = np.array(test_labels)
+test_labels = keras.utils.to_categorical(test_labels, 2)
 
 weights = np.array(class_1_accuracies) / np.sum(class_1_accuracies)
 predictions = np.array([model.predict(test_patches)[:, 1] for model in models])
