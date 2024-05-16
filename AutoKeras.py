@@ -25,7 +25,12 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.layers import Input, LayerNormalization, Concatenate, GlobalAveragePooling2D, Dense, Activation
 from tensorflow.keras.models import Model
 from tensorflow.keras.applications import EfficientNetB7
-from tensorflow.keras.layers.experimental.preprocessing import Rescaling, RandomTranslation, RandomFlip
+import tensorflow as tf
+from tensorflow.keras.layers import Input, Concatenate, GlobalAveragePooling2D, Dense, Activation
+from tensorflow.keras.models import Model
+from tensorflow.keras.applications import EfficientNetB7
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import Rescaling, RandomTranslation, RandomFlip
 
 
 models = []
