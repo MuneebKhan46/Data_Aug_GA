@@ -8,6 +8,7 @@ import textwrap
 import pandas as pd
 
 from tensorflow.keras.regularizers import l1
+import matplotlib.pyplot as plt
 
 from tensorflow import keras
 from tensorflow.keras.models import Model
@@ -19,7 +20,9 @@ from keras.callbacks import ModelCheckpoint
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array, array_to_img
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle as sklearn_shuffle
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report, accuracy_score
+
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support, log_loss, precision_recall_curve
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 from tensorflow.keras.optimizers import Adam
 
 models = []
@@ -29,6 +32,10 @@ original_dir = '/Dataset/dataset_patch_raw_ver3/original'
 denoised_dir = '/Dataset/dataset_patch_raw_ver3/denoised'
 csv_path     = '/Dataset/Data_Aug_GA/patch_label_median_verified3.csv'
 result_file_path = "/Dataset/Results/Overall_results.csv"
+
+
+##########################################################################################################################################################################
+##########################################################################################################################################################################
 
 def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int, height: int):
     y_size = width * height
@@ -59,6 +66,7 @@ def extract_y_channel_from_yuv_with_patch_numbers(yuv_file_path: str, width: int
 
     return patches, patch_numbers
 
+##########################################################################################################################################################################
 
 def load_data_from_csv(csv_path, original_dir, denoised_dir):
     df = pd.read_csv(csv_path)
@@ -94,26 +102,29 @@ def load_data_from_csv(csv_path, original_dir, denoised_dir):
 
     return all_original_patches, all_denoised_patches, all_scores, denoised_image_names, all_patch_numbers
 
+##########################################################################################################################################################################
 
 def calculate_difference(original, ghosting):
-    return [ghost.astype(np.int16) - orig.astype(np.int16) for orig, ghost in zip(original, ghosting)]
+    return [np.abs(ghost.astype(np.int16) - orig.astype(np.int16)).astype(np.uint8) for orig, ghost in zip(original, ghosting)]
 
+
+##########################################################################################################################################################################
 
 def prepare_data(data, labels):
     data = np.array(data).astype('float32') / 255.0
     lbl = np.array(labels)
     return data, lbl
 
+##########################################################################################################################################################################
 
 def save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path):
     
     if path.exists(result_file_path):
-    
         df_existing = pd.read_csv(result_file_path)
-        df_new_row = pd.DataFrame({
+        df_row = pd.DataFrame({
             'Model': [model_name],
-            'Technique' : [technique],
-            'Feature Map' : [feature_name],
+            'Technique': [technique],
+            'Feature Map': [feature_name],
             'Overall Accuracy': [test_acc],
             'Precision': [weighted_precision],
             'Recall': [weighted_recall],
@@ -122,13 +133,12 @@ def save_metric_details(model_name, technique, feature_name, test_acc, weighted_
             'Non-Ghosting Artifacts Accuracy': [accuracy_0],
             'Ghosting Artifacts Accuracy': [accuracy_1]
         })
-        df_metrics = pd.concat([df_existing, df_new_row], ignore_index=True)
+        df_metrics = pd.concat([df_existing, df_row], ignore_index=True)
     else:
-    
         df_metrics = pd.DataFrame({
             'Model': [model_name],
-            'Technique' : [technique],            
-            'Feature Map' : [feature_name],
+            'Technique': [technique],
+            'Feature Map': [feature_name],
             'Overall Accuracy': [test_acc],
             'Precision': [weighted_precision],
             'Recall': [weighted_recall],
@@ -138,9 +148,9 @@ def save_metric_details(model_name, technique, feature_name, test_acc, weighted_
             'Ghosting Artifacts Accuracy': [accuracy_1]
         })
 
-    
     df_metrics.to_csv(result_file_path, index=False)
 
+##########################################################################################################################################################################
 
 def augmented_images(data, num_augmented_images_per_original):
     augmented_images = []
@@ -165,6 +175,8 @@ def augmented_images(data, num_augmented_images_per_original):
             augmented_image = np.squeeze(augmented_image)
             augmented_images.append(augmented_image)
     return augmented_images
+
+##########################################################################################################################################################################
 
 def mobile_net_block(x, filters, strides):
     # Depthwise convolution
@@ -201,11 +213,11 @@ def create_mobnet_model(input_shape=(224,224, 1)):
 
   # Final part
   x = GlobalAveragePooling2D()(x)
-  x = Dense(2, activation='softmax')(x)  
+  x = Dense(2, activation='softmax')(x)
+
   model = Model(inputs=inputs, outputs=x)
 
   return model
-
 
 ##########################################################################################################################################################################
 ##########################################################################################################################################################################
@@ -258,6 +270,9 @@ train_labels = np.array(train_labels)
 print(f" Total Train Patches: {len(train_patches)}")
 print(f" Total Train Labels: {len(train_labels)}")
 
+##########################################################################################################################################################################
+##########################################################################################################################################################################
+
 test_patches = np.array(test_patches)
 test_labels = np.array(test_labels)
 
@@ -267,7 +282,7 @@ print(f" Total Test Labels: {len(test_labels)}")
 ghosting_patches = train_patches[train_labels == 1]
 
 ghosting_patches_expanded = np.expand_dims(ghosting_patches, axis=-1)
-augmented_images = augmented_images(ghosting_patches_expanded, num_augmented_images_per_original=11)
+augmented_images = augmented_images(ghosting_patches_expanded, num_augmented_images_per_original=12)
 
 augmented_images_np = np.stack(augmented_images)
 augmented_labels = np.ones(len(augmented_images_np))
@@ -282,33 +297,44 @@ print(f" Total Augmented Patches: {len(train_patches_combined)}")
 aghosting_patches = train_patches_combined[train_labels_combined == 1]
 print(f" Total Augmented GA: {len(aghosting_patches)}")
 
-X_train, X_test, y_train, y_test = train_test_split(train_patches_combined, train_labels_combined, test_size=0.15, random_state=42)
+X_train, X_temp, y_train, y_temp = train_test_split(train_patches_combined, train_labels_combined, test_size=0.2, random_state=42)
 
+X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
+
+CX_train = X_train
+Cy_train = y_train
 y_train = keras.utils.to_categorical(y_train, 2)
+y_val = keras.utils.to_categorical(y_val, 2)
 y_test = keras.utils.to_categorical(y_test, 2)
 
 print(f"X_Train Shape: {X_train.shape}")
 print(f"y_Train Shape: {y_train.shape}")
+
+print(f"X_Val Shape: {X_val.shape}")
+print(f"y_Val Shape: {y_val.shape}")
+
 print(f"X_Test Shape: {X_test.shape}")
 print(f"y_Test Shape: {y_test.shape}")
 
 
 ##########################################################################################################################################################################
 ##########################################################################################################################################################################
+                                                            ## Without Class Weight
+##########################################################################################################################################################################
+##########################################################################################################################################################################
 
-
-# Without Class Weight
-
-opt = Adam(learning_rate=0.0001)
+opt = Adam(learning_rate=2e-05)
 mobnet_wcw_model = create_mobnet_model()
 mobnet_wcw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 wcw_model_checkpoint = keras.callbacks.ModelCheckpoint(filepath='/Dataset/Model/MobNet_Diff_wCW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-wcw_history = mobnet_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test), callbacks=[wcw_model_checkpoint])
+wcw_history = mobnet_wcw_model.fit(X_train, y_train, epochs=20, validation_data=(X_val, y_val), callbacks=[wcw_model_checkpoint])
 
 ##########################################################################################################################################################################
-
-# With Class Weight
+##########################################################################################################################################################################
+                                                            ## With Class Weight
+##########################################################################################################################################################################
+##########################################################################################################################################################################
 
 ng = len(train_patches[train_labels == 0])
 ga =  len(train_patches[train_labels == 1])
@@ -322,19 +348,20 @@ class_weight = {0: weight_for_0, 1: weight_for_1}
 print('Weight for class 0 (Non-ghosting): {:.2f}'.format(weight_for_0))
 print('Weight for class 1 (Ghosting): {:.2f}'.format(weight_for_1))
 
-
-opt = Adam(learning_rate=0.0001)
+opt = Adam(learning_rate=2e-05)
 mobnet_cw_model = create_mobnet_model()
 mobnet_cw_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 cw_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/MobNet_Diff_CW.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cw_history = mobnet_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_test, y_test), callbacks=[cw_model_checkpoint])
+cw_history = mobnet_cw_model.fit(X_train, y_train, epochs=20, class_weight=class_weight, validation_data=(X_val, y_val), callbacks=[cw_model_checkpoint])
 
 ##########################################################################################################################################################################
-
-# With Class Balance
+##########################################################################################################################################################################
+                                                            # With Class Balance
+##########################################################################################################################################################################
+##########################################################################################################################################################################
  
-combined = list(zip(train_patches_combined, train_labels_combined))
+combined = list(zip(CX_train, Cy_train))
 combined = sklearn_shuffle(combined)
 
 ghosting_artifacts = [item for item in combined if item[1] == 1]
@@ -345,6 +372,7 @@ print(f"Non Ghosting Artifacts: {len(non_ghosting_artifacts)}")
 
 num_ghosting_artifacts = len(ghosting_artifacts)
 
+
 train_val_ghosting = ghosting_artifacts[:num_ghosting_artifacts]
 train_val_non_ghosting = non_ghosting_artifacts[:num_ghosting_artifacts]
 
@@ -353,49 +381,56 @@ print(f"Class balance train size {len(cb_train_dataset)}")
 
 cb_train_patches, cb_train_labels = zip(*cb_train_dataset)
 
-cb_train_patches, cb_test_patches, cb_train_labels, cb_test_labels = train_test_split(cb_train_patches, cb_train_labels, test_size=0.20, random_state=42)
-
 cb_train_patches = np.array(cb_train_patches)
 cb_train_labels = np.array(cb_train_labels)
-cb_test_patches = np.array(cb_test_patches)
-cb_test_labels = np.array(cb_test_labels)
-
 
 cb_train_labels = keras.utils.to_categorical(cb_train_labels, 2)
-cb_test_labels = keras.utils.to_categorical(cb_test_labels, 2)
 
-
-opt = Adam(learning_rate=0.0001)
+opt = Adam(learning_rate=2e-05)
 mobnet_cb_model = create_mobnet_model()
 mobnet_cb_model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 
 cb_model_checkpoint = ModelCheckpoint(filepath='/Dataset/Model/MobNet_Diff_CB.keras', save_best_only=True, monitor='val_accuracy', mode='max', verbose=1 )
-cb_history = mobnet_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(cb_test_patches, cb_test_labels), callbacks=[cb_model_checkpoint])
+cb_history = mobnet_cb_model.fit(cb_train_patches, cb_train_labels, epochs=20, class_weight=class_weight, validation_data=(X_val, y_val), callbacks=[cb_model_checkpoint])
 
 
 ##########################################################################################################################################################################
 ##########################################################################################################################################################################
-
-
-# Testing
-
-test_patches = np.array(test_patches)
-test_patches = test_patches.reshape((-1, 224, 224, 1))  
-
-test_labels = np.array(test_labels)
-test_labels = keras.utils.to_categorical(test_labels, 2)
-
+                                                                    # Testing
+##########################################################################################################################################################################
 ##########################################################################################################################################################################
 
+X_test = np.array(X_test)
+X_test = X_test.reshape((-1, 224, 224, 1))
+
+##########################################################################################################################################################################
 ## Without Class Weight
 
-test_loss, test_acc = mobnet_wcw_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = mobnet_wcw_model.evaluate(X_test, y_test)
 test_acc  = test_acc *100
 
-predictions = mobnet_wcw_model.predict(test_patches)
+predictions = mobnet_wcw_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(test_labels, axis=-1)
+
+precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
+
+plt.figure()
+plt.plot(recall, precision, linestyle='-', color='b')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.grid(True)
+precision_recall_curve_path = '/Dataset/Plots/MobilNet_Diff_wCW_precision_recall_curve.png'
+
+if not os.path.exists(os.path.dirname(precision_recall_curve_path)):
+    os.makedirs(os.path.dirname(precision_recall_curve_path))
+
+plt.savefig(precision_recall_curve_path, dpi=300)
+plt.close()
+
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
@@ -471,16 +506,33 @@ class_1_accuracies.append(class_1_precision)
 
 ## With Class Weight
 
-test_loss, test_acc = mobnet_cw_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = mobnet_cw_model.evaluate(X_test, y_test)
 test_acc  = test_acc *100
 
-predictions = mobnet_cw_model.predict(test_patches)
+predictions = mobnet_cw_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(test_labels, axis=-1)
 
+precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
+
+plt.figure()
+plt.plot(recall, precision, linestyle='-', color='g')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.grid(True)
+precision_recall_curve_path = '/Dataset/Plots/MobilNet_Diff_CW_precision_recall_curve.png'
+
+if not os.path.exists(os.path.dirname(precision_recall_curve_path)):
+    os.makedirs(os.path.dirname(precision_recall_curve_path))
+
+plt.savefig(precision_recall_curve_path, dpi=300)
+plt.close()
+
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_CW_csv_path  = '/Dataset/CSV/MobNet_Diff_CW_misclassified_patches.csv'    
+misclass_CW_csv_path  = '/Dataset/CSV/MobNet_AbsDiff_CW_misclassified_patches.csv'    
 
 misclassified_indexes = np.where(predicted_labels != true_labels)[0]
 misclassified_data = []
@@ -554,12 +606,30 @@ class_1_accuracies.append(class_1_precision)
 
 ## With Class Balance
 
-test_loss, test_acc = mobnet_cb_model.evaluate(test_patches, test_labels)
+test_loss, test_acc = mobnet_cb_model.evaluate(X_test, y_test)
 test_acc  = test_acc *100
 
-predictions = mobnet_cb_model.predict(test_patches)
+predictions = mobnet_cb_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
 true_labels = np.argmax(test_labels, axis=-1)
+
+precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
+
+plt.figure()
+plt.plot(recall, precision, linestyle='-', color='y')
+plt.xlabel('Recall')
+plt.ylabel('Precision')
+plt.title('Precision-Recall Curve')
+plt.legend()
+plt.grid(True)
+precision_recall_curve_path = '/Dataset/Plots/MobilNet_Diff_CB_precision_recall_curve.png'
+
+if not os.path.exists(os.path.dirname(precision_recall_curve_path)):
+    os.makedirs(os.path.dirname(precision_recall_curve_path))
+
+plt.savefig(precision_recall_curve_path, dpi=300)
+plt.close()
+
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
@@ -634,17 +704,25 @@ class_1_precision = report['Ghosting Artifact']['precision']
 models.append(mobnet_cw_model)
 class_1_accuracies.append(class_1_precision)
 
+
+##########################################################################################################################################################################
+##########################################################################################################################################################################
+                                                                    ## Precision base Ensemble
+##########################################################################################################################################################################
 ##########################################################################################################################################################################
 
-## ENSEMBLE 
+test_patches = np.array(test_patches)
+test_patches = test_patches.reshape((-1, 224, 224, 1))
 
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, log_loss
+test_labels = np.array(test_labels)
+test_labels = keras.utils.to_categorical(test_labels, 2)
 
 weights = np.array(class_1_accuracies) / np.sum(class_1_accuracies)
 predictions = np.array([model.predict(test_patches)[:, 1] for model in models])
 weighted_predictions = np.tensordot(weights, predictions, axes=([0], [0]))
 predicted_classes = (weighted_predictions > 0.5).astype(int)
 true_labels = np.argmax(test_labels, axis=-1)
+
 test_acc = accuracy_score(true_labels, predicted_classes)
 
 weighted_precision, weighted_recall, weighted_f1_score, _ = precision_recall_fscore_support(true_labels, predicted_classes, average='weighted')
@@ -672,18 +750,104 @@ accuracy_1 = (TP / total_class_1) * 100
 
 model_name = "MobileNet"
 feature_name = "Difference Map"
-technique = "Ensemble"
+technique = "Precision Ensemble"
 
 save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
 print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
 
 
-
-misclass_En_csv_path = '/Dataset/CSV/Ensemble_MobNet_Diff_misclassified_patches.csv'
-
+misclass_En_csv_path = '/Dataset/CSV/Precision_Ensemble_MobileNet_Diff_misclassified_patches.csv'
 misclassified_indexes = np.where(predicted_classes != true_labels)[0]
-misclassified_data = []
 
+misclassified_data = []
+for index in misclassified_indexes:
+    denoised_image_name = test_image_names[index]
+    patch_number = test_patch_numbers[index]
+    true_label = true_labels[index]
+    predicted_label = predicted_classes[index]
+
+    probability_non_ghosting = 1 - weighted_predictions[index]
+    probability_ghosting = weighted_predictions[index]
+    
+    misclassified_data.append([
+        denoised_image_name, patch_number, true_label, predicted_label,
+        probability_non_ghosting, probability_ghosting
+    ])
+
+misclassified_df = pd.DataFrame(misclassified_data, columns=[
+    'Denoised Image Name', 'Patch Number', 'True Label', 'Predicted Label', 
+    'Probability Non-Ghosting', 'Probability Ghosting'
+])
+misclassified_df.to_csv(misclass_En_csv_path, index=False)
+
+
+##########################################################################################################################################################################
+##########################################################################################################################################################################
+                                                                    ## Average base Ensemble
+##########################################################################################################################################################################
+##########################################################################################################################################################################
+
+predictions = np.array([model.predict(test_patches)[:, 1] for model in models])
+average_predictions = np.mean(predictions, axis=0)
+
+predicted_classes = (average_predictions > 0.5).astype(int)
+true_labels = np.argmax(test_labels, axis=-1)
+
+
+test_acc = accuracy_score(true_labels, predicted_classes)
+print(f"Test Accuracy: {test_acc * 100:.2f}%")
+
+test_loss = log_loss(true_labels, average_predictions)
+print(f"Test Loss: {test_loss:.4f}")
+
+report = classification_report(true_labels, predicted_classes, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
+
+conf_matrix = confusion_matrix(true_labels, predicted_classes)
+TN = conf_matrix[0, 0]
+FP = conf_matrix[0, 1]
+FN = conf_matrix[1, 0]
+TP = conf_matrix[1, 1]
+
+
+total_class_0 = TN + FP
+total_class_1 = TP + FN
+correctly_predicted_0 = TN
+correctly_predicted_1 = TP
+
+
+accuracy_0 = (TN / total_class_0) * 100
+accuracy_1 = (TP / total_class_1) * 100
+
+precision_0 = TN / (TN + FN) if (TN + FN) > 0 else 0
+recall_0 = TN / (TN + FP) if (TN + FP) > 0 else 0
+precision_1 = TP / (TP + FP) if (TP + FP) > 0 else 0
+recall_1 = TP / (TP + FN) if (TP + FN) > 0 else 0
+
+
+weighted_precision = (precision_0 * total_class_0 + precision_1 * total_class_1) / (total_class_0 + total_class_1)
+weighted_recall = (recall_0 * total_class_0 + recall_1 * total_class_1) / (total_class_0 + total_class_1)
+
+if weighted_precision + weighted_recall > 0:
+    weighted_f1_score = 2 * (weighted_precision * weighted_recall) / (weighted_precision + weighted_recall)
+else:
+    weighted_f1_score = 0
+
+weighted_f1_score  = weighted_f1_score*100
+weighted_precision = weighted_precision*100
+weighted_recall    = weighted_recall*100
+
+
+model_name = "MobileNet"
+feature_name = "Difference Map"
+technique = "Average Ensemble"
+save_metric_details(model_name, technique, feature_name, test_acc, weighted_precision, weighted_recall, weighted_f1_score, test_loss, accuracy_0, accuracy_1, result_file_path)
+print(f"Accuracy: {test_acc:.4f} | precision: {weighted_precision:.4f}, Recall={weighted_recall:.4f}, F1-score={weighted_f1_score:.4f}, Loss={test_loss:.4f}, N.G.A Accuracy={accuracy_0:.4f}, G.A Accuracy={accuracy_1:.4f}")
+
+
+misclass_En_csv_path = '/Dataset/CSV/Average_Ensemble_MobileNet_Diff_misclassified_patches.csv'
+misclassified_indexes = np.where(predicted_classes != true_labels)[0]
+
+misclassified_data = []
 for index in misclassified_indexes:
     denoised_image_name = test_image_names[index]
     patch_number = test_patch_numbers[index]
