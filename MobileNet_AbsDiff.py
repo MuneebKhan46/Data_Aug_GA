@@ -435,30 +435,6 @@ plt.close()
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
 
-misclass_wCW_csv_path = '/Dataset/CSV/MobNet_AbsDiff_wCW_misclassified_patches.csv'
-misclassified_indexes = np.where(predicted_labels != true_labels)[0]
-misclassified_data = []
-
-for index in misclassified_indexes:
-    denoised_image_name = test_image_names[index]
-    patch_number = test_patch_numbers[index]
-    true_label = true_labels[index]
-    predicted_label = predicted_labels[index]
-    probability_non_ghosting = predictions[index, 0]
-    probability_ghosting = predictions[index, 1]
-    
-    misclassified_data.append([
-        denoised_image_name, patch_number, true_label, predicted_label,
-        probability_non_ghosting, probability_ghosting
-    ])
-
-misclassified_df = pd.DataFrame(misclassified_data, columns=[
-    'Denoised Image Name', 'Patch Number', 'True Label', 'Predicted Label', 
-    'Probability Non-Ghosting', 'Probability Ghosting'
-])
-
-misclassified_df.to_csv(misclass_wCW_csv_path, index=False)
-
 conf_matrix = confusion_matrix(true_labels, predicted_labels)
 TN = conf_matrix[0, 0]
 FP = conf_matrix[0, 1]
@@ -532,30 +508,6 @@ plt.savefig(precision_recall_curve_path, dpi=300)
 plt.close()
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
-
-misclass_CW_csv_path  = '/Dataset/CSV/MobNet_AbsDiff_CW_misclassified_patches.csv'    
-
-misclassified_indexes = np.where(predicted_labels != true_labels)[0]
-misclassified_data = []
-for index in misclassified_indexes:
-    denoised_image_name = test_image_names[index]
-    patch_number = test_patch_numbers[index]
-    true_label = true_labels[index]
-    predicted_label = predicted_labels[index]
-    probability_non_ghosting = predictions[index, 0]
-    probability_ghosting = predictions[index, 1]
-    
-    misclassified_data.append([
-        denoised_image_name, patch_number, true_label, predicted_label,
-        probability_non_ghosting, probability_ghosting
-    ])
-
-misclassified_df = pd.DataFrame(misclassified_data, columns=[
-    'Denoised Image Name', 'Patch Number', 'True Label', 'Predicted Label', 
-    'Probability Non-Ghosting', 'Probability Ghosting'
-])
-
-misclassified_df.to_csv(misclass_CW_csv_path, index=False)
 
 conf_matrix = confusion_matrix(true_labels, predicted_labels)
 TN = conf_matrix[0, 0]
@@ -633,31 +585,6 @@ plt.close()
 
 
 report = classification_report(true_labels, predicted_labels, output_dict=True, target_names=["Non-Ghosting Artifact", "Ghosting Artifact"])
-
-misclass_CB_csv_path  = '/Dataset/CSV/MobNet_AbsDiff_CB_misclassified_patches.csv'    
-misclassified_indexes = np.where(predicted_labels != true_labels)[0]
-misclassified_data = []
-
-for index in misclassified_indexes:
-    denoised_image_name = test_image_names[index]
-    patch_number = test_patch_numbers[index]
-    true_label = true_labels[index]
-    predicted_label = predicted_labels[index]
-    probability_non_ghosting = predictions[index, 0]
-    probability_ghosting = predictions[index, 1]
-    
-    misclassified_data.append([
-        denoised_image_name, patch_number, true_label, predicted_label,
-        probability_non_ghosting, probability_ghosting
-    ])
-
-misclassified_df = pd.DataFrame(misclassified_data, columns=[
-    'Denoised Image Name', 'Patch Number', 'True Label', 'Predicted Label', 
-    'Probability Non-Ghosting', 'Probability Ghosting'
-])
-
-misclassified_df.to_csv(misclass_CB_csv_path, index=False)
-
 
 conf_matrix = confusion_matrix(true_labels, predicted_labels)
 TN = conf_matrix[0, 0]
