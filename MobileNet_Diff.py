@@ -416,7 +416,7 @@ test_acc  = test_acc *100
 
 predictions = mobnet_wcw_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
-true_labels = np.argmax(test_labels, axis=-1)
+true_labels = np.argmax(y_test, axis=-1)
 
 precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
 
@@ -515,7 +515,7 @@ test_acc  = test_acc *100
 
 predictions = mobnet_cw_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
-true_labels = np.argmax(test_labels, axis=-1)
+true_labels = np.argmax(y_test, axis=-1)
 
 precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
 
@@ -615,7 +615,7 @@ test_acc  = test_acc *100
 
 predictions = mobnet_cb_model.predict(X_test)
 predicted_labels = np.argmax(predictions, axis=1)
-true_labels = np.argmax(test_labels, axis=-1)
+true_labels = np.argmax(y_test, axis=-1)
 
 precision, recall, _ = precision_recall_curve(true_labels, predictions[:, 1])
 
