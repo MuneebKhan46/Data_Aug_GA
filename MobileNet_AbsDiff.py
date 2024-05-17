@@ -1,6 +1,10 @@
 import tensorflow as tf
 import numpy as np
 import os
+
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+
+
 from os import path
 import csv
 import cv2
